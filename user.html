@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Member Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+            min-height: 100vh;
+        }
+        .form-input { padding: 10px; border: 1px solid #d1d5db; border-radius: 0.5rem; width: 100%; }
+
+        /* Loader Bar CSS */
+        @keyframes indeterminate-loading {
+            0% { left: -100%; width: 100%; }
+            100% { left: 100%; width: 100%; }
+        }
+        #loader-bar .progress {
+            position: absolute;
+            height: 100%;
+            background-color: #10b981; /* Green color for user view */
+            animation: indeterminate-loading 1.5s infinite linear;
+        }
+        /* Modal backdrop */
+        .modal-overlay {
+            background-color: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(3px);
+            z-index: 50;
+            display: none; /* Ensure it starts hidden */
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
+</head>
+<body class="flex flex-col">
+
+    <div id="loader-bar" class="fixed top-0 left-0 w-full h-1 bg-green-200 overflow-hidden hidden z-50">
+        <div class="progress"></div>
+    </div>
+    
+    <main class="flex-1 p-4 md:p-8">
+        <div class="max-w-4xl mx-auto bg-white rounded-xl shadow-2xl p-6 md:p-10">
+
+            <header class="flex justify-between items-center border-b pb-4 mb-6">
+                <div class="flex flex-col">
+                    <h1 class="text-3xl font-bold text-gray-900">Welcome, <span id="user-name-header" class="text-green-600">Member</span>!</h1>
+                    <p class="text-sm text-gray-500">Your Personal Dashboard</p>
+                </div>
+                <button onclick="logout()" class="py-2 px-4 rounded-lg bg-red-600 text-white font-semibold hover:bg-red-700 transition duration-300 shadow-md">
+                    Logout
+                </button>
+            </header>
+
+            <nav class="flex space-x-4 border-b mb-6 overflow-x-auto pb-2">
+                <button id="nav-dashboard" onclick="showView('dashboard')" class="py-2 px-4 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-green-600 hover:border-green-600 transition duration-150 whitespace-nowrap">
+                    My Profile
+                </button>
+                <button id="nav-history" onclick="showView('history')" class="py-2 px-4 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-green-600 hover:border-green-600 transition duration-150 whitespace-nowrap">
+                    Payment History
+                </button>
+                <button id="nav-terms" onclick="showView('terms')" class="py-2 px-4 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-green-600 hover:border-green-600 transition duration-150 whitespace-nowrap">
+                    Terms & Condition
+                </button>
+                <button id="nav-address" onclick="showView('address')" class="py-2 px-4 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-green-600 hover:border-green-600 transition duration-150 whitespace-nowrap">
+                    Address
+                </button>
+                <button id="nav-about" onclick="showView('about')" class="py-2 px-4 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-green-600 hover:border-green-600 transition duration-150 whitespace-nowrap">
+                    About Us
+                </button>
+                <button id="nav-distribute" onclick="showView('distribute')" class="py-2 px-4 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-green-600 hover:border-green-600 transition duration-150 whitespace-nowrap">
+                    Distribution Plan
+                </button>
+            </nav>
+            <div id="content-container">
+                
+                <section id="view-dashboard" class="space-y-6">
+                    <h2 class="text-2xl font-semibold text-gray-800">Account Overview</h2>
+
+                    <div id="profile-card" class="bg-gray-50 border border-gray-200 p-6 rounded-lg shadow-md space-y-4">
+                        <div class="flex justify-between items-center pb-2 border-b border-gray-200">
+                            <h3 class="text-xl font-semibold text-green-700">Personal Details</h3>
+                            <button onclick="showEditProfileModal()"
+                                    class="text-green-600 hover:text-green-800 text-sm font-medium transition duration-150">
+                                Edit Details
+                            </button>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                            <p><strong>Full Name:</strong> <span id="profile-name" class="text-gray-700">N/A</span></p>
+                            <p><strong>Phone Number:</strong> <span id="profile-phone" class="text-gray-700">N/A</span></p>
+                            <p><strong>Address:</strong> <span id="profile-address" class="text-gray-700">N/A</span></p>
+                            <p><strong>Date of Birth:</strong> <span id="profile-dob" class="text-gray-700">N/A</span></p>
+                        </div>
+                    </div>
+
+                    <div id="finance-card" class="bg-green-50 border border-green-200 p-6 rounded-lg shadow-md space-y-4">
+                        <h3 class="text-xl font-semibold text-green-700 border-b border-green-300 pb-2">Monthly Fee Status (<span id="current-month-display">Current Month</span>)</h3>
+
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm font-medium">
+                            <div class="bg-white p-3 rounded-lg shadow-inner">
+                                <p class="text-xs text-gray-500">Your Monthly Fee</p>
+                                <p id="fee-amount" class="text-lg font-bold text-green-800">Rs. 0</p>
+                            </div>
+                            <div class="bg-white p-3 rounded-lg shadow-inner">
+                                <p class="text-xs text-gray-500">Paid This Month</p>
+                                <p id="paid-amount" class="text-lg font-bold text-blue-800">Rs. 0</p>
+                            </div>
+                            <div class="bg-white p-3 rounded-lg shadow-inner">
+                                <p class="text-xs text-gray-500">Remaining Due</p>
+                                <p id="due-amount" class="text-lg font-bold text-red-700">Rs. 0</p>
+                            </div>
+                        </div>
+
+                        <p id="payment-status-message" class="text-center font-semibold text-md pt-2">Loading status...</p>
+                    </div>
+
+                    <div class="bg-blue-50 border border-blue-200 p-6 rounded-lg shadow-md space-y-2">
+                        <h3 class="text-xl font-semibold text-blue-700 border-b border-blue-300 pb-2">Lifetime Payments Summary</h3>
+                        <div class="flex justify-between items-center py-2">
+                            <p class="text-lg text-gray-700 font-medium">Total Amount Paid:</p>
+                            <p id="total-paid-amount" class="text-3xl font-extrabold text-blue-800">Rs. 0</p>
+                        </div>
+                    </div>
+
+                    <div id="profile-not-found" class="hidden text-center p-8 bg-red-100 border border-red-400 rounded-lg">
+                        <p class="text-xl text-red-700 font-bold">Account Not Found</p>
+                        <p class="text-gray-600 mt-2">Please ensure you logged in with the correct credentials or contact an administrator.</p>
+                    </div>
+                </section>
+
+                <section id="view-history" class="space-y-6 hidden">
+                    <h2 class="text-2xl font-semibold text-gray-800">Full Payment History</h2>
+
+                    <div class="overflow-x-auto bg-gray-50 p-4 rounded-lg shadow-inner">
+                        <p class="text-center text-gray-500 mb-4" id="history-message">Loading history...</p>
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-100">
+                                <tr>
+                                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Month/Year</th>
+                                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount Paid (Rs.)</th>
+                                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Paid On</th>
+                                </tr>
+                            </thead>
+                            <tbody id="history-table-body" class="bg-white divide-y divide-gray-200">
+                                </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <section id="view-terms" class="space-y-6 hidden">
+                    <h2 class="text-2xl font-semibold text-gray-800">பண்டின் விதிமுறைகள் மற்றும் நிபந்தனைகள் (Terms & Conditions)</h2>
+                    <div class="bg-white border border-yellow-300 p-6 rounded-lg shadow-lg">
+                        <p class="mb-4 text-gray-700 font-medium">வாடிக்கையாளர்கள் கவனத்திற்கு:</p>
+                        <ol class="list-decimal list-inside space-y-3 pl-5 text-gray-700">
+                            <li>பண்டு மாதம் ரூ.1000 செலுத்த வேண்டும் அட்டையில் குறிப்பிட்டுள்ள தொகை ரூபாய்.15,000 மட்டுமே வழங்கப்படும்.</li>
+                            <li>அட்டையில் குறிப்பிட்டுள்ள பொருட்கள் மட்டுமே வழங்கப்படும்.</li>
+                            <li>பிரதி மாதம் 1-ம் தேதி முதல் 10ம் தேதிக்குள் பணம் கட்டவேண்டும் தவறினால் ரூ.100/- சேர்த்து கட்ட வேண்டும்.</li>
+                            <li>பணம் கட்ட முடியாமல் இடையில் நிறுத்திவிட்டால் பண்டு முடிவில் தான் கட்டிய பணம் தரப்படும் அதற்கு உரிய வட்டி சேர்த்து தரப்பட மாட்டாது.</li>
+                            <li>தொடர்ந்து 2 மாதங்கள் பணம் கட்ட தவறினால் பண்டிலிருந்து நீக்கப்படும்.</li>
+                        </ol>
+                    </div>
+                </section>
+                <section id="view-address" class="space-y-6 hidden">
+                    <h2 class="text-2xl font-semibold text-gray-800">எங்கள் முகவரி (Our Address)</h2>
+                    <div class="bg-white border border-blue-300 p-6 rounded-lg shadow-lg">
+                        <h3 class="text-xl font-bold text-blue-700 mb-4">தீபாவளி சிறப்பு பண்டு பணம் மற்றும் பட்டாசு பண்டு</h3>
+                        <address class="not-italic text-lg text-gray-700 space-y-1">
+                            <p>நெ.5/397, ஈஸ்வரன் கோயில் தெரு,</p>
+                            <p>பழைய அலமாதி,</p>
+                            <p>ரெட்ஹில்ஸ்,</p>
+                            <p>சென்னை - 52.</p>
+                        </address>
+                        <div class="mt-6">
+                            <h4 class="text-lg font-semibold text-gray-700">தொடர்புக்கு:</h4>
+                            <p class="text-gray-600">தயவுசெய்து நிர்வாகியைத் தொடர்பு கொள்ளவும்.</p>
+                        </div>
+                    </div>
+                </section>
+                <section id="view-about" class="space-y-6 hidden">
+                    <h2 class="text-2xl font-semibold text-gray-800">எங்களைப் பற்றி (About Us)</h2>
+                    <div class="bg-white border border-green-300 p-6 rounded-lg shadow-lg space-y-4 text-gray-700">
+                        <p>எங்கள் நிறுவனம் "தீபாவளி சிறப்பு பண்டு பணம் மற்றும் பட்டாசு பண்டு" திட்டத்தின் மூலம் பல ஆண்டுகளாக எங்கள் வாடிக்கையாளர்களின் தீபாவளித் தேவைகளைப் பூர்த்தி செய்து வருகிறது. எளிய மாதாந்திர தவணைகள் மூலம், எங்கள் வாடிக்கையாளர்கள் தங்களுக்குத் தேவையான பணம் அல்லது பட்டாசுகளைப் பண்டிகைக் காலத்தில் பெற்று மகிழ்ச்சியுடன் கொண்டாடுவதை உறுதி செய்கிறோம்.</p>
+                        <p>வாடிக்கையாளர்களின் நம்பிக்கையையும், திருப்தியையும் இலக்காகக் கொண்டு நேர்மையுடன் செயல்படுகிறோம். எங்கள் திட்டங்கள் மூலம், ஒவ்வொரு குடும்பமும் நிதிச் சுமையின்றி தீபாவளியைக் கொண்டாட வேண்டும் என்பதே எங்கள் நோக்கம்.</p>
+                        <p class="font-semibold text-green-700">உங்களின் சிறப்பான தீபாவளிக்காக நாங்கள் எப்போதும் உங்களுடன்.</p>
+                    </div>
+                </section>
+
+                <section id="view-distribute" class="space-y-6 hidden">
+                    <h2 class="text-2xl font-semibold text-gray-800">வழங்கப்படும் திட்ட விவரங்கள் (Distribution Plan)</h2>
+
+                    <div class="bg-blue-50 border border-blue-300 p-6 rounded-lg shadow-lg space-y-4 text-gray-700 text-justify">
+                        <h3 class="text-xl font-bold text-blue-700 mb-4 border-b pb-2">பண்டு திட்டம் (மாதம் ரூ.1000/- வீதம் மொத்தம் 12 மாதம்)</h3>
+                        <p class="font-semibold text-lg mb-2">வழங்கப்படும் தொகை:</p>
+                        <ul class="list-disc list-inside space-y-2 pl-5">
+                            <li>ரொக்கமாக பணம்: ₹15,000/- வழங்கப்படும்.</li>
+                            <li>பட்டாசு: 1 பாக்ஸ்.</li>
+                            <li>ஸ்வீட்: 1 பாக்ஸ்.</li>
+                        </ul>
+                    </div>
+
+                    <div class="bg-green-50 border border-green-300 p-6 rounded-lg shadow-lg space-y-4 text-gray-700 text-justify">
+                        <h3 class="text-xl font-bold text-green-700 mb-4 border-b pb-2">ஒரு முறை ரூ.3000/- செலுத்தினால்</h3>
+                        <p class="font-semibold text-lg mb-2">வழங்கப்படும் பொருட்கள்:</p>
+                        <ul class="list-disc list-inside space-y-2 pl-5">
+                            <li>பட்டாசு: ₹3,000 மதிப்புள்ளது.</li>
+                            <li>பாஸ்மதி அரிசி: 3 கிலோ.</li>
+                            <li>எண்ணெய்: 5 லிட்டர்.</li>
+                            <li>ஸ்டீல் பாத்திரம்: 1 நெ.</li>
+                            <li>ஸ்வீட்: 1/2 கிலோ.</li>
+                        </ul>
+                    </div>
+                </section>
+                </div>
+        </div>
+    </main>
+
+    <div id="edit-profile-modal" class="modal-overlay">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 transform transition-all duration-300 scale-95 md:scale-100">
+            <div class="flex justify-between items-center border-b pb-3 mb-4">
+                <h3 class="text-2xl font-semibold text-gray-800">Edit My Details</h3>
+                <button onclick="hideEditProfileModal()" class="text-gray-400 hover:text-gray-600">&times;</button>
+            </div>
+            
+            <form id="edit-profile-form" class="space-y-4" onsubmit="handleUserEdit(event)">
+                <input type="hidden" id="edit-user-phone-key">
+                <div>
+                    <label for="edit-name" class="block text-sm font-medium text-gray-700">Full Name</label>
+                    <input type="text" id="edit-name" required class="form-input" placeholder="User Full Name">
+                </div>
+                <div>
+                    <label for="edit-address" class="block text-sm font-medium text-gray-700">Address</label>
+                    <input type="text" id="edit-address" required class="form-input" placeholder="User Address">
+                </div>
+                <div>
+                    <label for="edit-phone" class="block text-sm font-medium text-gray-700">Phone Number (Read-Only)</label>
+                    <input type="tel" id="edit-phone" readonly class="form-input bg-gray-100 cursor-not-allowed">
+                </div>
+                <div>
+                    <label for="edit-dob" class="block text-sm font-medium text-gray-700">Date of Birth</label>
+                    <input type="date" id="edit-dob" required class="form-input">
+                </div>
+                <div class="bg-yellow-50 p-3 rounded-lg text-sm text-yellow-800 font-medium">
+                    <p>Note: Monthly Fee and Role can only be changed by an administrator.</p>
+                    <p>Your Fee: <span id="edit-monthly-amount-display"></span></p>
+                </div>
+                <button type="submit" class="w-full py-2 px-4 rounded-lg bg-green-600 text-white font-semibold hover:bg-green-700 transition duration-300 shadow-md">
+                    Save Changes
+                </button>
+            </form>
+        </div>
+    </div>
+
+
+    <div id="toast-container" class="fixed top-5 right-5 space-y-2 z-50">
+        </div>
+
+    <script type="module">
+        // Import 'off' to manage listeners if the user is denied access
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getDatabase, ref, get, update, onValue, off } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
+
+        // Provided Firebase Configuration (Must match index.html)
+        const userFirebaseConfig = {
+            apiKey: "AIzaSyAinICoMQqqonJGxNDzoFNe3izzAgcTc_k",
+            authDomain: "raja-bd35c.firebaseapp.com",
+            databaseURL: "https://raja-bd35c-default-rtdb.firebaseio.com",
+            projectId: "raja-bd35c",
+            storageBucket: "raja-bd35c.firebasestorage.app",
+            messagingSenderId: "981299309786",
+            appId: "1:981299309786:web:2dbf4d49d7e31cb8a749e3",
+            measurementId: "G-1T29TY0FXB"
+        };
+
+        const app = initializeApp(userFirebaseConfig);
+        const db = getDatabase(app);
+        const USERS_PATH = 'users';
+        const PAYMENTS_PATH = 'payments';
+        
+        let loggedInUser = null; 
+        let userPhoneKey = getLoggedInUserKey();
+        let currentPaymentListener = null; // To store the reference for the payment listener
+
+        // --- UTILITY FUNCTIONS ---
+        
+        function showLoader() {
+            document.getElementById('loader-bar').classList.remove('hidden');
+        }
+
+        function hideLoader() {
+            document.getElementById('loader-bar').classList.add('hidden');
+        }
+
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            let bgColor, icon;
+
+            switch(type) {
+                case 'error': bgColor = 'bg-red-500'; icon = '❌'; break;
+                case 'warning': bgColor = 'bg-yellow-500'; icon = '⚠️'; break;
+                case 'success': default: bgColor = 'bg-green-500'; icon = '✅'; break;
+            }
+
+            toast.className = `p-4 rounded-lg shadow-lg text-white font-semibold max-w-xs ${bgColor} transition-transform transform duration-300`;
+            toast.innerHTML = `<div class="flex items-center space-x-2"><span class="text-xl">${icon}</span><span>${message}</span></div>`;
+
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.classList.add('opacity-0');
+                toast.addEventListener('transitionend', () => toast.remove());
+            }, 4000);
+        }
+        
+        function sanitizePhone(phone) {
+            return phone.replace(/[^0-9]/g, '');
+        }
+
+        /**
+         * Reads the phone number from the URL query parameter (Passed from index.html).
+         * @returns {string|null} The sanitized phone key or null.
+         */
+        function getLoggedInUserKey() {
+            const params = new URLSearchParams(window.location.search);
+            const phone = params.get('phone');
+            return phone ? sanitizePhone(phone) : null;
+        }
+
+        // --- NAVIGATION & UI CONTROL ---
+
+        function showView(viewName) {
+            // UPDATED: Added new view names
+            const allViews = ['dashboard', 'history', 'terms', 'address', 'about', 'distribute']; // ADDED 'distribute'
+            
+            allViews.forEach(view => {
+                const viewElement = document.getElementById(`view-${view}`);
+                const navElement = document.getElementById(`nav-${view}`);
+                
+                if (view === viewName) {
+                    viewElement.classList.remove('hidden');
+                    if (navElement) {
+                        navElement.classList.add('text-green-600', 'border-green-600');
+                        navElement.classList.remove('text-gray-500', 'hover:border-green-600');
+                    }
+
+                    if (viewName === 'history' && loggedInUser) {
+                        showUserPaymentHistory();
+                    }
+                } else {
+                    viewElement.classList.add('hidden');
+                    if (navElement) {
+                        navElement.classList.remove('text-green-600', 'border-green-600');
+                        navElement.classList.add('text-gray-500', 'hover:border-green-600');
+                    }
+                }
+            });
+        }
+
+        function showEditProfileModal() {
+            if (!loggedInUser) return showToast("User data is not loaded.", 'error');
+
+            document.getElementById('edit-user-phone-key').value = userPhoneKey;
+            document.getElementById('edit-name').value = loggedInUser.name || '';
+            document.getElementById('edit-address').value = loggedInUser.address || '';
+            document.getElementById('edit-phone').value = loggedInUser.phone || userPhoneKey;
+            document.getElementById('edit-dob').value = loggedInUser.dob || '';
+            document.getElementById('edit-monthly-amount-display').textContent = `Rs. ${loggedInUser.monthlyPaidAmount?.toLocaleString() || '0'}`;
+
+            document.getElementById('edit-profile-modal').style.display = 'flex';
+        }
+
+        function hideEditProfileModal() {
+            document.getElementById('edit-profile-modal').style.display = 'none';
+        }
+
+        /**
+         * Determines the payment status based on due/paid amounts.
+         */
+        function getPaymentStatus(dueAmount, monthlyFee) {
+            if (dueAmount <= 0) {
+                return { status: 'Fully Paid! Thank you.', class: 'text-white bg-green-500' };
+            } else if (dueAmount < monthlyFee) {
+                return { status: 'Partially Paid. Amount due: ', class: 'text-white bg-yellow-500' };
+            } else {
+                return { status: 'Unpaid. Full amount due: ', class: 'text-white bg-red-600' };
+            }
+        }
+
+        // --- FIREBASE LOGIC & RENDERING ---
+
+        /**
+         * Calculates and renders the total amount paid across all months.
+         */
+        async function calculateAndRenderTotalPaid() {
+            if (!userPhoneKey) return;
+            
+            document.getElementById('total-paid-amount').textContent = 'Rs. Calculating...';
+            
+            try {
+                const historyRef = ref(db, `${PAYMENTS_PATH}/${userPhoneKey}`);
+                const snapshot = await get(historyRef);
+                
+                let totalPaid = 0;
+                
+                if (snapshot.exists()) {
+                    const paymentsByYear = snapshot.val();
+                    
+                    // Iterate through years and months to sum up all payments
+                    for (const year in paymentsByYear) {
+                        const paymentsByMonth = paymentsByYear[year];
+                        for (const month in paymentsByMonth) {
+                            const payment = paymentsByMonth[month];
+                            // Ensure payment.amount is a number before adding
+                            totalPaid += (payment.amount && !isNaN(payment.amount) ? payment.amount : 0);
+                        }
+                    }
+                }
+
+                document.getElementById('total-paid-amount').textContent = `Rs. ${totalPaid.toLocaleString()}`;
+
+            } catch (error) {
+                console.error("Error calculating total paid amount:", error);
+                document.getElementById('total-paid-amount').textContent = 'Rs. Error';
+                showToast("Failed to calculate total payments.", 'error');
+            }
+        }
+
+        /**
+         * Loads the logged-in user's data using an onValue listener for REALTIME updates.
+         */
+        function loadUserData() {
+            if (!userPhoneKey) {
+                // This case is handled in DOMContentLoaded, but good to have a fallback
+                document.getElementById('profile-not-found').classList.remove('hidden');
+                showToast("Authentication failed. Missing user ID.", 'error');
+                hideLoader();
+                return;
+            }
+
+            showLoader();
+            const userRef = ref(db, `${USERS_PATH}/${userPhoneKey}`);
+
+            // Set up a REALTIME listener for the user's profile
+            onValue(userRef, (snapshot) => {
+                hideLoader(); // Hide loader after initial load/update
+
+                if (!snapshot.exists()) {
+                    document.getElementById('profile-not-found').classList.remove('hidden');
+                    document.getElementById('user-name-header').textContent = 'Error';
+                    showToast("User account not found.", 'error');
+                    // Ensure payment listener is also stopped if user is not found
+                    if (currentPaymentListener) off(currentPaymentListener); 
+                    return;
+                }
+
+                const user = snapshot.val();
+                
+                // 1. Check Role and enforce access control (critical security step)
+                if ((user.role?.toLowerCase() || 'user') !== 'user') {
+                    showToast("Access Denied: This page is for members only.", 'error');
+                    // Remove listeners before redirecting
+                    off(userRef); 
+                    if (currentPaymentListener) off(currentPaymentListener); 
+                    setTimeout(() => window.location.href = 'index.html', 500);
+                    return;
+                }
+                
+                loggedInUser = user;
+                
+                // 2. Render Profile
+                renderDashboard(user);
+                
+                // 3. Start or update the REALTIME listener for current month payment status
+                fetchCurrentMonthPaymentRealtime(user);
+
+                // 4. Calculate and render total paid amount (GET call for one-time display)
+                calculateAndRenderTotalPaid(); 
+                
+            }, (error) => {
+                console.error("User Data Realtime Error:", error);
+                showToast(`Failed to load data: ${error.message}`, 'error');
+                hideLoader();
+            });
+        }
+
+        /**
+         * Renders the user's dashboard (profile details and current month status).
+         * @param {object} user The user data object.
+         */
+        function renderDashboard(user) {
+            document.getElementById('user-name-header').textContent = user.name || 'Member';
+            document.getElementById('profile-not-found').classList.add('hidden');
+            
+            // Profile Details
+            document.getElementById('profile-name').textContent = user.name || 'N/A';
+            document.getElementById('profile-phone').textContent = user.phone || userPhoneKey;
+            document.getElementById('profile-address').textContent = user.address || 'N/A';
+            document.getElementById('profile-dob').textContent = user.dob || 'N/A';
+            document.getElementById('fee-amount').textContent = `Rs. ${user.monthlyPaidAmount?.toLocaleString() || '0'}`;
+        }
+        
+        /**
+         * Fetches and updates the current month's payment status on the dashboard using an onValue listener.
+         * @param {object} user The user data object.
+         */
+        function fetchCurrentMonthPaymentRealtime(user) {
+            // Stop any existing listener before setting a new one (in case monthlyFee changed)
+            if (currentPaymentListener) {
+                off(currentPaymentListener);
+            }
+
+            const monthlyFee = user.monthlyPaidAmount || 0;
+            const currentDate = new Date();
+            const currentMonthYear = currentDate.toISOString().substring(0, 7); // YYYY-MM
+            const [year, month] = currentMonthYear.split('-');
+            const paymentKey = `${year}/${month}`;
+            
+            const monthName = currentDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
+            document.getElementById('current-month-display').textContent = monthName;
+
+            let statusMessageElement = document.getElementById('payment-status-message');
+            
+            // Set initial loading state
+            statusMessageElement.classList.remove('bg-green-500', 'bg-yellow-500', 'bg-red-600');
+            statusMessageElement.classList.add('bg-white', 'text-gray-500');
+            statusMessageElement.textContent = 'Checking payment status...';
+            
+            document.getElementById('paid-amount').textContent = 'Rs. 0';
+            document.getElementById('due-amount').textContent = 'Rs. 0';
+
+            const paymentRef = ref(db, `${PAYMENTS_PATH}/${userPhoneKey}/${paymentKey}`);
+            currentPaymentListener = paymentRef; // Store the reference
+
+            // Listen for REALTIME updates on the current month's payment
+            onValue(paymentRef, (snapshot) => {
+                let paidAmount = 0;
+                
+                if (snapshot.exists()) {
+                    paidAmount = snapshot.val().amount;
+                }
+                
+                const dueAmount = Math.max(0, monthlyFee - paidAmount);
+                
+                const { status, class: statusClass } = getPaymentStatus(monthlyFee - paidAmount, monthlyFee);
+
+                document.getElementById('paid-amount').textContent = `Rs. ${paidAmount.toLocaleString()}`;
+                document.getElementById('due-amount').textContent = `Rs. ${dueAmount.toLocaleString()}`;
+                
+                // Update status message
+                statusMessageElement.classList.remove('bg-white', 'text-gray-500');
+                statusMessageElement.classList.remove('bg-green-500', 'bg-yellow-500', 'bg-red-600'); // Clear old status class
+                statusMessageElement.classList.add(statusClass);
+                
+                let message = status;
+                if (status.includes('Due')) {
+                    message += `Rs. ${dueAmount.toLocaleString()}`;
+                }
+                statusMessageElement.textContent = message;
+
+            }, (error) => {
+                console.error("Payment Realtime Error:", error);
+                statusMessageElement.textContent = 'Error checking status.';
+            });
+        }
+
+        /**
+         * Fetches and displays the payment history for the logged-in user. (Uses GET since it's only on click)
+         */
+        async function showUserPaymentHistory() {
+            if (!loggedInUser) return showToast("User data is not loaded.", 'error');
+
+            document.getElementById('history-message').textContent = 'Loading history...';
+            document.getElementById('history-table-body').innerHTML = '';
+            showLoader();
+
+            try {
+                const historyRef = ref(db, `${PAYMENTS_PATH}/${userPhoneKey}`);
+                const snapshot = await get(historyRef);
+
+                let htmlContent = '';
+                if (snapshot.exists()) {
+                    const paymentsByYear = snapshot.val();
+                    let payments = [];
+                    
+                    // Flatten the payment structure
+                    for (const year in paymentsByYear) {
+                        const paymentsByMonth = paymentsByYear[year];
+                        for (const month in paymentsByMonth) {
+                            // Add year/month to the payment object for sorting/display
+                            payments.push({ ...paymentsByMonth[month], monthYearKey: `${year}-${month}` });
+                        }
+                    }
+
+                    // Sort payments by monthYearKey (YYYY-MM) descending
+                    payments.sort((a, b) => (b.monthYearKey || '').localeCompare(a.monthYearKey || ''));
+
+                    payments.forEach(payment => {
+                        const monthlyFee = loggedInUser.monthlyPaidAmount || 0;
+                        const due = monthlyFee - payment.amount;
+                        const { status, class: statusClass } = getPaymentStatus(due, monthlyFee);
+
+                        // Extract status text and clean up class
+                        const statusText = status.split('. ')[0].replace('!', '');
+                        const displayStatusClass = statusClass.includes('green') ? 'bg-green-100 text-green-800' : 
+                                                   statusClass.includes('yellow') ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800';
+                        
+                        const paidOnDate = payment.paidOn ? new Date(payment.paidOn).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : 'N/A';
+                        
+                        htmlContent += `
+                            <tr>
+                                <td class="px-4 py-2 whitespace-nowrap text-sm font-medium text-gray-900">${payment.monthYear || payment.monthYearKey || 'N/A'}</td>
+                                <td class="px-4 py-2 whitespace-nowrap text-sm text-green-700">Rs. ${payment.amount?.toLocaleString() || '0'}</td>
+                                <td class="px-4 py-2 whitespace-nowrap">
+                                    <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${displayStatusClass}">
+                                        ${statusText}
+                                    </span>
+                                </td>
+                                <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-500">${paidOnDate}</td>
+                            </tr>
+                        `;
+                    });
+
+                    document.getElementById('history-table-body').innerHTML = htmlContent;
+                    document.getElementById('history-message').textContent = '';
+                } else {
+                    document.getElementById('history-message').textContent = 'No payment history found for your account.';
+                }
+
+            } catch (error) {
+                console.error("Error fetching payment history:", error);
+                document.getElementById('history-message').textContent = `Failed to load history: ${error.message}`;
+                showToast("Failed to load payment history.", 'error');
+            } finally {
+                hideLoader();
+            }
+        }
+        
+        /**
+         * Handles saving changes from the Edit Profile modal.
+         */
+        async function handleUserEdit(event) {
+            event.preventDefault();
+
+            const name = document.getElementById('edit-name').value.trim();
+            const address = document.getElementById('edit-address').value.trim();
+            const dob = document.getElementById('edit-dob').value;
+
+            if (!userPhoneKey || !name || !address || !dob) {
+                showToast("All fields are required.", 'error');
+                return;
+            }
+
+            showLoader();
+
+            try {
+                const userRef = ref(db, `${USERS_PATH}/${userPhoneKey}`);
+                
+                const updatedData = {
+                    name: name,
+                    address: address,
+                    dob: dob,
+                };
+
+                // Use update to only modify the specified fields
+                await update(userRef, updatedData); 
+                showToast("Your details updated successfully.", 'success');
+                
+                // The loadUserData onValue listener will handle re-rendering automatically
+
+                hideEditProfileModal();
+            } catch (error) {
+                console.error("Profile Edit Error:", error);
+                showToast(`An error occurred while updating your profile: ${error.message}`, 'error');
+            } finally {
+                hideLoader();
+            }
+        }
+
+        function logout() {
+            // Stop listeners before navigating away
+            const userRef = ref(db, `${USERS_PATH}/${userPhoneKey}`);
+            off(userRef);
+            if (currentPaymentListener) off(currentPaymentListener); 
+            
+            console.log("Member logged out. Redirecting to index.html");
+            window.location.href = 'index.html';
+        }
+
+        // --- INITIALIZATION ---
+        
+        // Expose functions globally
+        window.logout = logout;
+        window.showView = showView;
+        window.showEditProfileModal = showEditProfileModal;
+        window.hideEditProfileModal = hideEditProfileModal;
+        window.handleUserEdit = handleUserEdit;
+
+        // Initial setup on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!userPhoneKey) {
+                // If phone is missing from URL, show toast and redirect with a fast delay
+                showToast("Authentication required. Redirecting...", 'error');
+                
+                // Redirecting after a short delay
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 500); 
+            } else {
+                loadUserData(); 
+                showView('dashboard'); 
+            }
+        });
+
+    </script>
+</body>
+</html>

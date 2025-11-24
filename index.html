@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Auth System with Roles</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --success: #10b981;
+            --error: #ef4444;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+        }
+        .form-input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            transition: all 0.2s;
+            appearance: none;
+        }
+        .form-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.5);
+            outline: none;
+        }
+        /* Custom CSS for the loading bar animation */
+        @keyframes indeterminate-loading {
+            0% { left: -100%; width: 100%; }
+            100% { left: 100%; width: 100%; }
+        }
+        #loader-bar .progress {
+            position: absolute;
+            height: 100%;
+            background-color: var(--primary);
+            animation: indeterminate-loading 1.5s infinite linear;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4">
+
+    <div class="w-full max-w-md bg-white rounded-xl shadow-2xl transition duration-500 hover:shadow-3xl relative overflow-hidden">
+        
+        <div id="loader-bar" class="absolute top-0 left-0 w-full h-1 bg-indigo-200 overflow-hidden hidden">
+            <div class="progress"></div>
+        </div>
+        <div class="p-8">
+            <h1 id="main-title" class="text-3xl font-bold text-gray-800 mb-6 text-center">User Login</h1>
+
+            <div id="forms-container">
+
+                <form id="login-form" class="space-y-4" onsubmit="handleLogin(event)">
+                    <div>
+                        <label for="login-phone" class="block text-sm font-medium text-gray-700">Phone Number</label>
+                        <input type="tel" id="login-phone" required class="form-input" placeholder="10-digit Phone No" pattern="[0-9]{10}" maxlength="10">
+                    </div>
+
+                    <div>
+                        <label for="login-dob" class="block text-sm font-medium text-gray-700">Date of Birth</label>
+                        <input type="date" id="login-dob" required class="form-input">
+                    </div>
+
+                    <button type="submit"
+                            class="w-full py-2 px-4 rounded-lg bg-green-600 text-white font-semibold hover:bg-green-700 transition duration-300 shadow-md transform hover:scale-[1.01]">
+                        Login
+                    </button>
+                </form>
+
+                <div id="auth-display" class="hidden mt-8 p-4 bg-indigo-50 rounded-lg border border-indigo-200">
+                    <h2 id="welcome-title" class="text-xl font-semibold text-indigo-800 mb-3">Welcome!</h2>
+                    <p class="text-sm text-indigo-600 mb-2 font-medium">Full Data Stored:</p>
+                    <pre id="user-data" class="text-xs text-gray-700 whitespace-pre-wrap bg-white p-3 rounded-lg border"></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast-container" class="fixed top-5 right-5 space-y-2 z-50">
+        </div>
+
+    <script type="module">
+        // Firebase Imports
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
+
+        // Provided Firebase Configuration
+        const userFirebaseConfig = {
+            apiKey: "AIzaSyAinICoMQqqonJGxNDzoFNe3izzAgcTc_k",
+            authDomain: "raja-bd35c.firebaseapp.com",
+            databaseURL: "https://raja-bd35c-default-rtdb.firebaseio.com",
+            projectId: "raja-bd35c",
+            storageBucket: "raja-bd35c.firebasestorage.app",
+            messagingSenderId: "981299309786",
+            appId: "1:981299309786:web:2dbf4d49d7e31cb8a749e3",
+            measurementId: "G-1T29TY0FXB"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(userFirebaseConfig);
+        const db = getDatabase(app);
+        const USERS_PATH = 'users';
+
+        // --- LOADER FUNCTIONS ---
+
+        /** Shows the loading bar. */
+        function showLoader() {
+            document.getElementById('loader-bar').classList.remove('hidden');
+        }
+
+        /** Hides the loading bar. */
+        function hideLoader() {
+            document.getElementById('loader-bar').classList.add('hidden');
+        }
+
+        // --- UTILITY FUNCTIONS ---
+
+        /**
+         * Helper function to show notifications (replaces alert()).
+         */
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            let bgColor;
+            let icon;
+
+            switch(type) {
+                case 'error':
+                    bgColor = 'bg-red-500';
+                    icon = '❌';
+                    break;
+                case 'warning':
+                    bgColor = 'bg-yellow-500';
+                    icon = '⚠️';
+                    break;
+                case 'success':
+                default:
+                    bgColor = 'bg-green-500';
+                    icon = '✅';
+                    break;
+            }
+
+            toast.className = `p-4 rounded-lg shadow-lg text-white font-semibold max-w-xs ${bgColor} transition-transform transform duration-300`;
+            toast.innerHTML = `<div class="flex items-center space-x-2"><span class="text-xl">${icon}</span><span>${message}</span></div>`;
+
+            container.appendChild(toast);
+
+            // Automatically remove the toast after 4 seconds
+            setTimeout(() => {
+                toast.classList.add('opacity-0');
+                toast.addEventListener('transitionend', () => toast.remove());
+            }, 4000);
+        }
+
+        /**
+         * Cleans the phone number to be used as a valid key in the database (alphanumeric only).
+         * @param {string} phone The raw phone number.
+         * @returns {string} The sanitized key.
+         */
+        function sanitizePhone(phone) {
+            return phone.replace(/[^0-9]/g, '');
+        }
+
+        // Expose functions to the global scope for use in HTML event handlers
+        window.showToast = showToast;
+        window.handleLogin = handleLogin;
+        window.db = db;
+        window.USERS_PATH = USERS_PATH;
+
+        // --- AUTHENTICATION LOGIC ---
+
+        /**
+         * Handles the login form submission.
+         * @param {Event} event The form submission event.
+         */
+        async function handleLogin(event) {
+            event.preventDefault();
+            document.getElementById('auth-display').classList.add('hidden');
+
+            const rawPhone = document.getElementById('login-phone').value.trim();
+            const enteredDob = document.getElementById('login-dob').value; // YYYY-MM-DD format
+
+            const phone = sanitizePhone(rawPhone);
+
+            if (!phone || !enteredDob) {
+                showToast("Phone Number and Date of Birth are required.", 'error');
+                return;
+            }
+
+            showLoader(); // Show loader at the start of the async operation
+
+            try {
+                // 1. Fetch user data
+                const userRef = ref(db, `${USERS_PATH}/${phone}`);
+                const snapshot = await get(userRef);
+
+                if (!snapshot.exists()) {
+                    showToast("Login failed: Phone number not registered.", 'error');
+                    return;
+                }
+
+                const userData = snapshot.val();
+                const storedDob = userData.dob;
+
+                // 2. Compare DOB
+                if (storedDob === enteredDob) {
+                    
+                    const userRole = (userData.role || 'user').toLowerCase(); 
+
+                    showToast(`Login Successful! Redirecting to ${userRole} dashboard...`, 'success');
+                    
+                    // --- ROLE-BASED REDIRECTION LOGIC ---
+                    
+                    if (userRole === 'admin') {
+                        // Redirect to the admin dashboard
+                        console.log("Admin logged in. Redirecting to admin.html");
+                        window.location.href = 'admin.html';
+                    } else {
+                        // Redirect to the general user dashboard (for 'user' role or any other)
+                        console.log(`${userRole} logged in. Redirecting to user.html`);
+                        window.location.href = `user.html?phone=${phone}`;
+                    }
+
+                    // Clear login form
+                    document.getElementById('login-form').reset();
+                    
+                } else {
+                    showToast("Login failed: Incorrect Date of Birth.", 'error');
+                }
+
+            } catch (error) {
+                console.error("Login Error:", error);
+                showToast(`An error occurred during login: ${error.message}`, 'error');
+            } finally {
+                hideLoader(); // Hide loader after success or failure
+            }
+        }
+
+        // Initialize view on load
+        document.addEventListener('DOMContentLoaded', () => {
+            // No need for showForm function anymore, as only login is present
+            // We just ensure the login form is visible by default (which it is, since
+            // it's the only form and isn't hidden in the HTML structure anymore).
+        });
+    </script>
+</body>
+</html>
