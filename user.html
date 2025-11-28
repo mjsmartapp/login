@@ -5,16 +5,86 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Member Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f3f4f6;
-            min-height: 100vh;
+        :root {
+            --accent-gold: #ffc700;
+            --accent-saffron: #ff9933;
+            --deep-dark-bg: #111827; /* Deep Blue-Black */
         }
-        .form-input { padding: 10px; border: 1px solid #d1d5db; border-radius: 0.5rem; width: 100%; }
 
-        /* Loader Bar CSS */
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(140deg, #0a0e14, #1c222c, #2d3340); /* Match index.html gradient */
+            min-height: 100vh;
+            color: #e5e7eb; /* Light text color */
+            padding-top: 100px; /* Space for the fixed header/nav on mobile */
+            padding-bottom: 40px; /* Space for the fixed footer */
+        }
+        
+        /* Fixed Header/Nav container */
+        .fixed-header-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 20;
+            background: rgba(10, 15, 28, 0.95); /* Nearly solid background for fixed header */
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Fixed Footer */
+        .fixed-footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 20;
+            background: rgba(10, 15, 28, 0.95);
+            box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.5);
+            padding: 8px 0;
+            text-align: center;
+        }
+
+        /* Glassmorphism Card Style (applied to main container) */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 0 25px rgba(255, 195, 0, 0.15); /* Subtle Diwali glow */
+        }
+
+        /* Sub-Card Style */
+        .sub-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Form Inputs */
+        .form-input { 
+            padding: 12px; 
+            border: 1px solid rgba(255, 255, 255, 0.15); 
+            border-radius: 0.5rem; 
+            width: 100%; 
+            background: rgba(0, 0, 0, 0.2); 
+            color: #fff;
+            transition: all 0.3s;
+        }
+        .form-input::placeholder { color: #9ca3af; }
+        .form-input:focus {
+            border-color: var(--accent-gold);
+            box-shadow: 0 0 10px var(--accent-gold);
+            outline: none;
+            background: rgba(0, 0, 0, 0.3);
+        }
+        /* Read-only input */
+        .form-input.bg-gray-100 {
+             background: rgba(255, 255, 255, 0.05);
+             color: #a0aec0;
+        }
+
+
+        /* Loader Bar CSS (Updated to Gold Accent) */
         @keyframes indeterminate-loading {
             0% { left: -100%; width: 100%; }
             100% { left: 100%; width: 100%; }
@@ -22,15 +92,16 @@
         #loader-bar .progress {
             position: absolute;
             height: 100%;
-            background-color: #10b981; /* Green color for user view */
+            background-color: var(--accent-gold); 
             animation: indeterminate-loading 1.5s infinite linear;
         }
+        
         /* Modal backdrop */
         .modal-overlay {
-            background-color: rgba(0, 0, 0, 0.6);
-            backdrop-filter: blur(3px);
+            background-color: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(8px);
             z-index: 50;
-            display: none; /* Ensure it starts hidden */
+            display: none; 
             position: fixed;
             top: 0;
             left: 0;
@@ -39,129 +110,180 @@
             align-items: center;
             justify-content: center;
         }
+        /* Modal inner content with glass effect */
+        .modal-content {
+            background: rgba(30, 41, 59, 0.9); /* Darker internal modal background */
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #e5e7eb;
+        }
+
+        /* Responsive adjustments for the payment status grid */
+        @media (max-width: 768px) {
+            .status-grid {
+                grid-template-columns: 1fr; /* Stack columns on mobile */
+                gap: 12px;
+            }
+            .main-content-padding {
+                padding-top: 100px; /* Ensure content starts below the fixed header/nav */
+            }
+        }
+
     </style>
 </head>
 <body class="flex flex-col">
 
-    <div id="loader-bar" class="fixed top-0 left-0 w-full h-1 bg-green-200 overflow-hidden hidden z-50">
+    <div id="loader-bar" class="fixed top-0 left-0 w-full h-1 bg-white/10 overflow-hidden hidden z-50">
         <div class="progress"></div>
     </div>
     
-    <main class="flex-1 p-4 md:p-8">
-        <div class="max-w-4xl mx-auto bg-white rounded-xl shadow-2xl p-6 md:p-10">
+    <div class="fixed-header-container">
+        <header class="flex justify-between items-center p-4">
+            <div class="flex flex-col">
+                <h1 class="text-xl font-bold text-gray-100">Welcome, <span id="user-name-header" class="text-yellow-400">Member</span>!</h1>
+                <p class="text-xs text-gray-400">Dashboard</p>
+            </div>
+            <button onclick="logout()" class="py-1 px-3 text-sm rounded-lg bg-red-600 text-white font-semibold hover:bg-red-700 transition duration-300 shadow-lg">
+                Logout
+            </button>
+        </header>
 
-            <header class="flex justify-between items-center border-b pb-4 mb-6">
+        <nav class="flex space-x-3 border-b border-gray-700 overflow-x-auto px-4 pb-2">
+            <button id="nav-dashboard" onclick="showView('dashboard')" class="py-1 px-3 text-xs font-medium border-b-2 border-transparent text-gray-400 hover:text-yellow-400 hover:border-yellow-400 transition duration-150 whitespace-nowrap">
+                My Profile
+            </button>
+            <button id="nav-history" onclick="showView('history')" class="py-1 px-3 text-xs font-medium border-b-2 border-transparent text-gray-400 hover:text-yellow-400 hover:border-yellow-400 transition duration-150 whitespace-nowrap">
+                Payment History
+            </button>
+            <button id="nav-terms" onclick="showView('terms')" class="py-1 px-3 text-xs font-medium border-b-2 border-transparent text-gray-400 hover:text-yellow-400 hover:border-yellow-400 transition duration-150 whitespace-nowrap">
+                Terms
+            </button>
+            <button id="nav-address" onclick="showView('address')" class="py-1 px-3 text-xs font-medium border-b-2 border-transparent text-gray-400 hover:text-yellow-400 hover:border-yellow-400 transition duration-150 whitespace-nowrap">
+                Address
+            </button>
+            <button id="nav-about" onclick="showView('about')" class="py-1 px-3 text-xs font-medium border-b-2 border-transparent text-gray-400 hover:text-yellow-400 hover:border-yellow-400 transition duration-150 whitespace-nowrap">
+                About
+            </button>
+            <button id="nav-distribute" onclick="showView('distribute')" class="py-1 px-3 text-xs font-medium border-b-2 border-transparent text-gray-400 hover:text-yellow-400 hover:border-yellow-400 transition duration-150 whitespace-nowrap">
+                Plan
+            </button>
+        </nav>
+    </div>
+    <main class="flex-1 p-4 md:p-8">
+        <div class="max-w-4xl mx-auto glass-card rounded-xl shadow-2xl p-6 md:p-10">
+
+            <header class="hidden md:flex justify-between items-center border-b border-gray-700 pb-4 mb-6">
                 <div class="flex flex-col">
-                    <h1 class="text-3xl font-bold text-gray-900">Welcome, <span id="user-name-header" class="text-green-600">Member</span>!</h1>
-                    <p class="text-sm text-gray-500">Your Personal Dashboard</p>
+                    <h1 class="text-3xl font-bold text-gray-100">Welcome, <span id="user-name-header-desktop" class="text-yellow-400">Member</span>!</h1>
+                    <p class="text-sm text-gray-400">Your Personal Dashboard</p>
                 </div>
-                <button onclick="logout()" class="py-2 px-4 rounded-lg bg-red-600 text-white font-semibold hover:bg-red-700 transition duration-300 shadow-md">
+                <button onclick="logout()" class="py-2 px-4 rounded-lg bg-red-600 text-white font-semibold hover:bg-red-700 transition duration-300 shadow-lg">
                     Logout
                 </button>
             </header>
 
-            <nav class="flex space-x-4 border-b mb-6 overflow-x-auto pb-2">
-                <button id="nav-dashboard" onclick="showView('dashboard')" class="py-2 px-4 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-green-600 hover:border-green-600 transition duration-150 whitespace-nowrap">
+            <nav class="hidden md:flex space-x-4 border-b border-gray-700 mb-6 overflow-x-auto pb-2">
+                <button id="nav-dashboard-desktop" onclick="showView('dashboard')" class="py-2 px-4 text-sm font-medium border-b-2 border-transparent text-gray-400 hover:text-yellow-400 hover:border-yellow-400 transition duration-150 whitespace-nowrap">
                     My Profile
                 </button>
-                <button id="nav-history" onclick="showView('history')" class="py-2 px-4 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-green-600 hover:border-green-600 transition duration-150 whitespace-nowrap">
+                <button id="nav-history-desktop" onclick="showView('history')" class="py-2 px-4 text-sm font-medium border-b-2 border-transparent text-gray-400 hover:text-yellow-400 hover:border-yellow-400 transition duration-150 whitespace-nowrap">
                     Payment History
                 </button>
-                <button id="nav-terms" onclick="showView('terms')" class="py-2 px-4 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-green-600 hover:border-green-600 transition duration-150 whitespace-nowrap">
+                <button id="nav-terms-desktop" onclick="showView('terms')" class="py-2 px-4 text-sm font-medium border-b-2 border-transparent text-gray-400 hover:text-yellow-400 hover:border-yellow-400 transition duration-150 whitespace-nowrap">
                     Terms & Condition
                 </button>
-                <button id="nav-address" onclick="showView('address')" class="py-2 px-4 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-green-600 hover:border-green-600 transition duration-150 whitespace-nowrap">
+                <button id="nav-address-desktop" onclick="showView('address')" class="py-2 px-4 text-sm font-medium border-b-2 border-transparent text-gray-400 hover:text-yellow-400 hover:border-yellow-400 transition duration-150 whitespace-nowrap">
                     Address
                 </button>
-                <button id="nav-about" onclick="showView('about')" class="py-2 px-4 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-green-600 hover:border-green-600 transition duration-150 whitespace-nowrap">
+                <button id="nav-about-desktop" onclick="showView('about')" class="py-2 px-4 text-sm font-medium border-b-2 border-transparent text-gray-400 hover:text-yellow-400 hover:border-yellow-400 transition duration-150 whitespace-nowrap">
                     About Us
                 </button>
-                <button id="nav-distribute" onclick="showView('distribute')" class="py-2 px-4 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-green-600 hover:border-green-600 transition duration-150 whitespace-nowrap">
+                <button id="nav-distribute-desktop" onclick="showView('distribute')" class="py-2 px-4 text-sm font-medium border-b-2 border-transparent text-gray-400 hover:text-yellow-400 hover:border-yellow-400 transition duration-150 whitespace-nowrap">
                     Distribution Plan
                 </button>
             </nav>
             <div id="content-container">
                 
                 <section id="view-dashboard" class="space-y-6">
-                    <h2 class="text-2xl font-semibold text-gray-800">Account Overview</h2>
+                    <h2 class="text-2xl font-semibold text-yellow-400">Account Overview</h2>
 
-                    <div id="profile-card" class="bg-gray-50 border border-gray-200 p-6 rounded-lg shadow-md space-y-4">
-                        <div class="flex justify-between items-center pb-2 border-b border-gray-200">
-                            <h3 class="text-xl font-semibold text-green-700">Personal Details</h3>
+                    <div id="profile-card" class="sub-card p-4 sm:p-6 rounded-lg shadow-md space-y-4">
+                        <div class="flex justify-between items-center pb-2 border-b border-gray-700">
+                            <h3 class="text-xl font-semibold text-yellow-500">Personal Details</h3>
                             <button onclick="showEditProfileModal()"
-                                    class="text-green-600 hover:text-green-800 text-sm font-medium transition duration-150">
-                                Edit Details
+                                    class="text-yellow-400 hover:text-yellow-600 text-sm font-medium transition duration-150">
+                                Edit
                             </button>
                         </div>
                         
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                            <p><strong>Full Name:</strong> <span id="profile-name" class="text-gray-700">N/A</span></p>
-                            <p><strong>Phone Number:</strong> <span id="profile-phone" class="text-gray-700">N/A</span></p>
-                            <p><strong>Address:</strong> <span id="profile-address" class="text-gray-700">N/A</span></p>
-                            <p><strong>Date of Birth:</strong> <span id="profile-dob" class="text-gray-700">N/A</span></p>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm text-gray-300">
+                            <p><strong>Full Name:</strong> <span id="profile-name" class="text-gray-100">N/A</span></p>
+                            <p><strong>Phone:</strong> <span id="profile-phone" class="text-gray-100">N/A</span></p>
+                            <p class="sm:col-span-2"><strong>Address:</strong> <span id="profile-address" class="text-gray-100">N/A</span></p>
+                            <p><strong>Date of Birth:</strong> <span id="profile-dob" class="text-gray-100">N/A</span></p>
                         </div>
                     </div>
 
-                    <div id="finance-card" class="bg-green-50 border border-green-200 p-6 rounded-lg shadow-md space-y-4">
-                        <h3 class="text-xl font-semibold text-green-700 border-b border-green-300 pb-2">Monthly Fee Status (<span id="current-month-display">Current Month</span>)</h3>
+                    <div id="finance-card" class="sub-card p-4 sm:p-6 rounded-lg shadow-md space-y-4 border-yellow-500/50">
+                        <h3 class="text-xl font-semibold text-yellow-500 border-b border-gray-700 pb-2">Monthly Fee Status (<span id="current-month-display">Current Month</span>)</h3>
 
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm font-medium">
-                            <div class="bg-white p-3 rounded-lg shadow-inner">
-                                <p class="text-xs text-gray-500">Your Monthly Fee</p>
-                                <p id="fee-amount" class="text-lg font-bold text-green-800">Rs. 0</p>
+                        <div class="status-grid grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4 text-sm font-medium">
+                            <div class="sub-card p-3 rounded-lg shadow-inner text-center">
+                                <p class="text-xs text-gray-400">Your Monthly Fee</p>
+                                <p id="fee-amount" class="text-lg font-bold text-yellow-400">Rs. 0</p>
                             </div>
-                            <div class="bg-white p-3 rounded-lg shadow-inner">
-                                <p class="text-xs text-gray-500">Paid This Month</p>
-                                <p id="paid-amount" class="text-lg font-bold text-blue-800">Rs. 0</p>
+                            <div class="sub-card p-3 rounded-lg shadow-inner text-center">
+                                <p class="text-xs text-gray-400">Paid This Month</p>
+                                <p id="paid-amount" class="text-lg font-bold text-sky-400">Rs. 0</p>
                             </div>
-                            <div class="bg-white p-3 rounded-lg shadow-inner">
-                                <p class="text-xs text-gray-500">Remaining Due</p>
-                                <p id="due-amount" class="text-lg font-bold text-red-700">Rs. 0</p>
+                            <div class="sub-card p-3 rounded-lg shadow-inner text-center">
+                                <p class="text-xs text-gray-400">Remaining Due</p>
+                                <p id="due-amount" class="text-lg font-bold text-red-500">Rs. 0</p>
                             </div>
                         </div>
 
-                        <p id="payment-status-message" class="text-center font-semibold text-md pt-2">Loading status...</p>
+                        <p id="payment-status-message" class="text-center font-semibold text-md pt-2 rounded-lg text-gray-900">Loading status...</p>
                     </div>
 
-                    <div class="bg-blue-50 border border-blue-200 p-6 rounded-lg shadow-md space-y-2">
-                        <h3 class="text-xl font-semibold text-blue-700 border-b border-blue-300 pb-2">Lifetime Payments Summary</h3>
+                    <div class="sub-card p-4 sm:p-6 rounded-lg shadow-md space-y-2 border-sky-500/50">
+                        <h3 class="text-xl font-semibold text-sky-400 border-b border-gray-700 pb-2">Lifetime Payments Summary</h3>
                         <div class="flex justify-between items-center py-2">
-                            <p class="text-lg text-gray-700 font-medium">Total Amount Paid:</p>
-                            <p id="total-paid-amount" class="text-3xl font-extrabold text-blue-800">Rs. 0</p>
+                            <p class="text-lg text-gray-300 font-medium">Total Amount Paid:</p>
+                            <p id="total-paid-amount" class="text-3xl font-extrabold text-sky-400">Rs. 0</p>
                         </div>
                     </div>
 
-                    <div id="profile-not-found" class="hidden text-center p-8 bg-red-100 border border-red-400 rounded-lg">
-                        <p class="text-xl text-red-700 font-bold">Account Not Found</p>
-                        <p class="text-gray-600 mt-2">Please ensure you logged in with the correct credentials or contact an administrator.</p>
+                    <div id="profile-not-found" class="hidden text-center p-8 bg-red-800/20 border border-red-700 rounded-lg">
+                        <p class="text-xl text-red-400 font-bold">Account Not Found</p>
+                        <p class="text-gray-400 mt-2">Please ensure you logged in with the correct credentials or contact an administrator.</p>
                     </div>
                 </section>
 
                 <section id="view-history" class="space-y-6 hidden">
-                    <h2 class="text-2xl font-semibold text-gray-800">Full Payment History</h2>
+                    <h2 class="text-2xl font-semibold text-yellow-400">Full Payment History</h2>
 
-                    <div class="overflow-x-auto bg-gray-50 p-4 rounded-lg shadow-inner">
-                        <p class="text-center text-gray-500 mb-4" id="history-message">Loading history...</p>
-                        <table class="min-w-full divide-y divide-gray-200">
-                            <thead class="bg-gray-100">
+                    <div class="overflow-x-auto sub-card p-4 rounded-lg shadow-inner">
+                        <p class="text-center text-gray-400 mb-4" id="history-message">Loading history...</p>
+                        <table class="min-w-full divide-y divide-gray-700">
+                            <thead class="bg-gray-800">
                                 <tr>
-                                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Month/Year</th>
-                                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount Paid (Rs.)</th>
-                                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Paid On</th>
+                                    <th class="px-3 py-2 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Month/Year</th>
+                                    <th class="px-3 py-2 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Paid (Rs.)</th>
+                                    <th class="px-3 py-2 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Status</th>
+                                    <th class="px-3 py-2 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Paid On</th>
                                 </tr>
                             </thead>
-                            <tbody id="history-table-body" class="bg-white divide-y divide-gray-200">
+                            <tbody id="history-table-body" class="bg-gray-900 divide-y divide-gray-700 text-gray-200">
                                 </tbody>
                         </table>
                     </div>
                 </section>
 
                 <section id="view-terms" class="space-y-6 hidden">
-                    <h2 class="text-2xl font-semibold text-gray-800">பண்டின் விதிமுறைகள் மற்றும் நிபந்தனைகள் (Terms & Conditions)</h2>
-                    <div class="bg-white border border-yellow-300 p-6 rounded-lg shadow-lg">
-                        <p class="mb-4 text-gray-700 font-medium">வாடிக்கையாளர்கள் கவனத்திற்கு:</p>
-                        <ol class="list-decimal list-inside space-y-3 pl-5 text-gray-700">
+                    <h2 class="text-2xl font-semibold text-yellow-400">பண்டின் விதிமுறைகள் மற்றும் நிபந்தனைகள் (Terms & Conditions)</h2>
+                    <div class="sub-card p-4 sm:p-6 rounded-lg shadow-lg border-yellow-500/50">
+                        <p class="mb-4 text-gray-300 font-medium">வாடிக்கையாளர்கள் கவனத்திற்கு:</p>
+                        <ol class="list-decimal list-inside space-y-3 pl-5 text-gray-300 text-sm">
                             <li>பண்டு மாதம் ரூ.1000 செலுத்த வேண்டும் அட்டையில் குறிப்பிட்டுள்ள தொகை ரூபாய்.15,000 மட்டுமே வழங்கப்படும்.</li>
                             <li>அட்டையில் குறிப்பிட்டுள்ள பொருட்கள் மட்டுமே வழங்கப்படும்.</li>
                             <li>பிரதி மாதம் 1-ம் தேதி முதல் 10ம் தேதிக்குள் பணம் கட்டவேண்டும் தவறினால் ரூ.100/- சேர்த்து கட்ட வேண்டும்.</li>
@@ -170,49 +292,51 @@
                         </ol>
                     </div>
                 </section>
+                
                 <section id="view-address" class="space-y-6 hidden">
-                    <h2 class="text-2xl font-semibold text-gray-800">எங்கள் முகவரி (Our Address)</h2>
-                    <div class="bg-white border border-blue-300 p-6 rounded-lg shadow-lg">
-                        <h3 class="text-xl font-bold text-blue-700 mb-4">தீபாவளி சிறப்பு பண்டு பணம் மற்றும் பட்டாசு பண்டு</h3>
-                        <address class="not-italic text-lg text-gray-700 space-y-1">
+                    <h2 class="text-2xl font-semibold text-yellow-400">எங்கள் முகவரி (Our Address)</h2>
+                    <div class="sub-card p-4 sm:p-6 rounded-lg shadow-lg border-sky-500/50">
+                        <h3 class="text-xl font-bold text-sky-400 mb-4">தீபாவளி சிறப்பு பண்டு பணம் மற்றும் பட்டாசு பண்டு</h3>
+                        <address class="not-italic text-lg text-gray-200 space-y-1">
                             <p>நெ.5/397, ஈஸ்வரன் கோயில் தெரு,</p>
                             <p>பழைய அலமாதி,</p>
                             <p>ரெட்ஹில்ஸ்,</p>
                             <p>சென்னை - 52.</p>
                         </address>
                         <div class="mt-6">
-                            <h4 class="text-lg font-semibold text-gray-700">தொடர்புக்கு:</h4>
-                            <p class="text-gray-600">தயவுசெய்து நிர்வாகியைத் தொடர்பு கொள்ளவும்.</p>
+                            <h4 class="text-lg font-semibold text-gray-300">தொடர்புக்கு:</h4>
+                            <p class="text-gray-400">தயவுசெய்து நிர்வாகியைத் தொடர்பு கொள்ளவும்.</p>
                         </div>
                     </div>
                 </section>
+                
                 <section id="view-about" class="space-y-6 hidden">
-                    <h2 class="text-2xl font-semibold text-gray-800">எங்களைப் பற்றி (About Us)</h2>
-                    <div class="bg-white border border-green-300 p-6 rounded-lg shadow-lg space-y-4 text-gray-700">
+                    <h2 class="text-2xl font-semibold text-yellow-400">எங்களைப் பற்றி (About Us)</h2>
+                    <div class="sub-card p-4 sm:p-6 rounded-lg shadow-lg space-y-4 text-gray-300 border-yellow-500/50">
                         <p>எங்கள் நிறுவனம் "தீபாவளி சிறப்பு பண்டு பணம் மற்றும் பட்டாசு பண்டு" திட்டத்தின் மூலம் பல ஆண்டுகளாக எங்கள் வாடிக்கையாளர்களின் தீபாவளித் தேவைகளைப் பூர்த்தி செய்து வருகிறது. எளிய மாதாந்திர தவணைகள் மூலம், எங்கள் வாடிக்கையாளர்கள் தங்களுக்குத் தேவையான பணம் அல்லது பட்டாசுகளைப் பண்டிகைக் காலத்தில் பெற்று மகிழ்ச்சியுடன் கொண்டாடுவதை உறுதி செய்கிறோம்.</p>
                         <p>வாடிக்கையாளர்களின் நம்பிக்கையையும், திருப்தியையும் இலக்காகக் கொண்டு நேர்மையுடன் செயல்படுகிறோம். எங்கள் திட்டங்கள் மூலம், ஒவ்வொரு குடும்பமும் நிதிச் சுமையின்றி தீபாவளியைக் கொண்டாட வேண்டும் என்பதே எங்கள் நோக்கம்.</p>
-                        <p class="font-semibold text-green-700">உங்களின் சிறப்பான தீபாவளிக்காக நாங்கள் எப்போதும் உங்களுடன்.</p>
+                        <p class="font-semibold text-yellow-400">உங்களின் சிறப்பான தீபாவளிக்காக நாங்கள் எப்போதும் உங்களுடன்.</p>
                     </div>
                 </section>
 
                 <section id="view-distribute" class="space-y-6 hidden">
-                    <h2 class="text-2xl font-semibold text-gray-800">வழங்கப்படும் திட்ட விவரங்கள் (Distribution Plan)</h2>
+                    <h2 class="text-2xl font-semibold text-yellow-400">வழங்கப்படும் திட்ட விவரங்கள் (Distribution Plan)</h2>
 
-                    <div class="bg-blue-50 border border-blue-300 p-6 rounded-lg shadow-lg space-y-4 text-gray-700 text-justify">
-                        <h3 class="text-xl font-bold text-blue-700 mb-4 border-b pb-2">பண்டு திட்டம் (மாதம் ரூ.1000/- வீதம் மொத்தம் 12 மாதம்)</h3>
+                    <div class="sub-card p-4 sm:p-6 rounded-lg shadow-lg space-y-4 text-gray-300 text-justify border-sky-500/50">
+                        <h3 class="text-xl font-bold text-sky-400 mb-4 border-b border-gray-700 pb-2">பண்டு திட்டம் (மாதம் ரூ.1000/- வீதம் மொத்தம் 12 மாதம்)</h3>
                         <p class="font-semibold text-lg mb-2">வழங்கப்படும் தொகை:</p>
-                        <ul class="list-disc list-inside space-y-2 pl-5">
-                            <li>ரொக்கமாக பணம்: ₹15,000/- வழங்கப்படும்.</li>
+                        <ul class="list-disc list-inside space-y-2 pl-5 text-sm">
+                            <li>ரொக்கமாக பணம்: <span class="text-yellow-400">₹15,000/-</span> வழங்கப்படும்.</li>
                             <li>பட்டாசு: 1 பாக்ஸ்.</li>
                             <li>ஸ்வீட்: 1 பாக்ஸ்.</li>
                         </ul>
                     </div>
 
-                    <div class="bg-green-50 border border-green-300 p-6 rounded-lg shadow-lg space-y-4 text-gray-700 text-justify">
-                        <h3 class="text-xl font-bold text-green-700 mb-4 border-b pb-2">ஒரு முறை ரூ.3000/- செலுத்தினால்</h3>
+                    <div class="sub-card p-4 sm:p-6 rounded-lg shadow-lg space-y-4 text-gray-300 text-justify border-yellow-500/50">
+                        <h3 class="text-xl font-bold text-yellow-400 mb-4 border-b border-gray-700 pb-2">ஒரு முறை ரூ.3000/- செலுத்தினால்</h3>
                         <p class="font-semibold text-lg mb-2">வழங்கப்படும் பொருட்கள்:</p>
-                        <ul class="list-disc list-inside space-y-2 pl-5">
-                            <li>பட்டாசு: ₹3,000 மதிப்புள்ளது.</li>
+                        <ul class="list-disc list-inside space-y-2 pl-5 text-sm">
+                            <li>பட்டாசு: <span class="text-yellow-400">₹3,000</span> மதிப்புள்ளது.</li>
                             <li>பாஸ்மதி அரிசி: 3 கிலோ.</li>
                             <li>எண்ணெய்: 5 லிட்டர்.</li>
                             <li>ஸ்டீல் பாத்திரம்: 1 நெ.</li>
@@ -224,36 +348,45 @@
         </div>
     </main>
 
+    <footer class="fixed-footer">
+        <p class="text-xs text-gray-500">
+            Designed by : 
+            <a href="https://www.mjsmartapps.xyz" target="_blank" 
+               class="text-gray-400 hover:text-yellow-400 transition-colors duration-200 font-semibold">
+                MJ SMART APPS
+            </a>
+        </p>
+    </footer>
     <div id="edit-profile-modal" class="modal-overlay">
-        <div class="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 transform transition-all duration-300 scale-95 md:scale-100">
-            <div class="flex justify-between items-center border-b pb-3 mb-4">
-                <h3 class="text-2xl font-semibold text-gray-800">Edit My Details</h3>
-                <button onclick="hideEditProfileModal()" class="text-gray-400 hover:text-gray-600">&times;</button>
+        <div class="modal-content rounded-xl shadow-2xl w-full max-w-md p-6 transform transition-all duration-300 scale-95 md:scale-100">
+            <div class="flex justify-between items-center border-b border-gray-700 pb-3 mb-4">
+                <h3 class="text-2xl font-semibold text-yellow-400">Edit My Details</h3>
+                <button onclick="hideEditProfileModal()" class="text-gray-400 hover:text-yellow-400 text-3xl font-light">&times;</button>
             </div>
             
             <form id="edit-profile-form" class="space-y-4" onsubmit="handleUserEdit(event)">
                 <input type="hidden" id="edit-user-phone-key">
                 <div>
-                    <label for="edit-name" class="block text-sm font-medium text-gray-700">Full Name</label>
+                    <label for="edit-name" class="block text-sm font-medium text-gray-400">Full Name</label>
                     <input type="text" id="edit-name" required class="form-input" placeholder="User Full Name">
                 </div>
                 <div>
-                    <label for="edit-address" class="block text-sm font-medium text-gray-700">Address</label>
+                    <label for="edit-address" class="block text-sm font-medium text-gray-400">Address</label>
                     <input type="text" id="edit-address" required class="form-input" placeholder="User Address">
                 </div>
                 <div>
-                    <label for="edit-phone" class="block text-sm font-medium text-gray-700">Phone Number (Read-Only)</label>
+                    <label for="edit-phone" class="block text-sm font-medium text-gray-400">Phone Number (Read-Only)</label>
                     <input type="tel" id="edit-phone" readonly class="form-input bg-gray-100 cursor-not-allowed">
                 </div>
                 <div>
-                    <label for="edit-dob" class="block text-sm font-medium text-gray-700">Date of Birth</label>
+                    <label for="edit-dob" class="block text-sm font-medium text-gray-400">Date of Birth</label>
                     <input type="date" id="edit-dob" required class="form-input">
                 </div>
-                <div class="bg-yellow-50 p-3 rounded-lg text-sm text-yellow-800 font-medium">
+                <div class="bg-yellow-900/40 p-3 rounded-lg text-sm text-yellow-300 font-medium border border-yellow-700">
                     <p>Note: Monthly Fee and Role can only be changed by an administrator.</p>
-                    <p>Your Fee: <span id="edit-monthly-amount-display"></span></p>
+                    <p>Your Fee: <span id="edit-monthly-amount-display" class="font-bold"></span></p>
                 </div>
-                <button type="submit" class="w-full py-2 px-4 rounded-lg bg-green-600 text-white font-semibold hover:bg-green-700 transition duration-300 shadow-md">
+                <button type="submit" class="w-full py-2 px-4 rounded-lg bg-yellow-500 text-gray-900 font-semibold hover:bg-yellow-600 transition duration-300 shadow-xl">
                     Save Changes
                 </button>
             </form>
@@ -289,6 +422,38 @@
         let loggedInUser = null; 
         let userPhoneKey = getLoggedInUserKey();
         let currentPaymentListener = null; // To store the reference for the payment listener
+
+        // --- SESSION MANAGEMENT (NEW LOGIC) ---
+        
+        /**
+         * Checks Local Storage for the user session and enforces login/role.
+         */
+        function checkUserSession() {
+            const lsKey = localStorage.getItem('loggedInUserKey');
+            const lsRole = localStorage.getItem('loggedInUserRole');
+
+            // 1. Check if we have a key in the URL (first-time login redirect from index.html)
+            if (userPhoneKey) {
+                // Check if the URL key matches the Local Storage key (for safety/continuity)
+                if (lsKey === userPhoneKey && lsRole === 'user') {
+                    return true;
+                }
+                // If it doesn't match, we still allow the loadUserData() to run if coming from a URL
+                // The loadUserData will perform the final Firebase role check.
+                return true; 
+            } 
+            
+            // 2. Check if we have a valid key in Local Storage (re-visiting the page)
+            if (lsKey && lsRole === 'user') {
+                userPhoneKey = lsKey; // Use Local Storage key if URL is missing (direct access)
+                return true;
+            }
+
+            // 3. Fail: Redirect
+            showToast("Login session required. Redirecting...", 'error');
+            setTimeout(logout, 500); // Use logout to clear any potentially bad local storage data
+            return false;
+        }
 
         // --- UTILITY FUNCTIONS ---
         
@@ -339,31 +504,46 @@
         // --- NAVIGATION & UI CONTROL ---
 
         function showView(viewName) {
-            // UPDATED: Added new view names
-            const allViews = ['dashboard', 'history', 'terms', 'address', 'about', 'distribute']; // ADDED 'distribute'
+            const allViews = ['dashboard', 'history', 'terms', 'address', 'about', 'distribute'];
+            const activeColorClass = 'text-yellow-400 border-yellow-400';
+            const inactiveColorClass = 'text-gray-400 hover:border-yellow-400';
             
+            const navSuffixes = ['', '-desktop'];
+
             allViews.forEach(view => {
                 const viewElement = document.getElementById(`view-${view}`);
-                const navElement = document.getElementById(`nav-${view}`);
                 
                 if (view === viewName) {
                     viewElement.classList.remove('hidden');
-                    if (navElement) {
-                        navElement.classList.add('text-green-600', 'border-green-600');
-                        navElement.classList.remove('text-gray-500', 'hover:border-green-600');
-                    }
+                    
+                    navSuffixes.forEach(suffix => {
+                        const navElement = document.getElementById(`nav-${view}${suffix}`);
+                        if (navElement) {
+                            navElement.classList.add(...activeColorClass.split(' '));
+                            navElement.classList.remove(...inactiveColorClass.split(' '));
+                        }
+                    });
 
                     if (viewName === 'history' && loggedInUser) {
                         showUserPaymentHistory();
                     }
                 } else {
                     viewElement.classList.add('hidden');
-                    if (navElement) {
-                        navElement.classList.remove('text-green-600', 'border-green-600');
-                        navElement.classList.add('text-gray-500', 'hover:border-green-600');
-                    }
+                    navSuffixes.forEach(suffix => {
+                        const navElement = document.getElementById(`nav-${view}${suffix}`);
+                        if (navElement) {
+                            navElement.classList.remove(...activeColorClass.split(' '));
+                            navElement.classList.add(...inactiveColorClass.split(' '));
+                        }
+                    });
                 }
             });
+            
+            if(loggedInUser) {
+                 document.getElementById('user-name-header').textContent = loggedInUser.name || 'Member';
+                 const desktopHeader = document.getElementById('user-name-header-desktop');
+                 if(desktopHeader) desktopHeader.textContent = loggedInUser.name || 'Member';
+            }
         }
 
         function showEditProfileModal() {
@@ -440,7 +620,6 @@
          */
         function loadUserData() {
             if (!userPhoneKey) {
-                // This case is handled in DOMContentLoaded, but good to have a fallback
                 document.getElementById('profile-not-found').classList.remove('hidden');
                 showToast("Authentication failed. Missing user ID.", 'error');
                 hideLoader();
@@ -457,8 +636,10 @@
                 if (!snapshot.exists()) {
                     document.getElementById('profile-not-found').classList.remove('hidden');
                     document.getElementById('user-name-header').textContent = 'Error';
+                    const desktopHeader = document.getElementById('user-name-header-desktop');
+                    if (desktopHeader) desktopHeader.textContent = 'Error';
+
                     showToast("User account not found.", 'error');
-                    // Ensure payment listener is also stopped if user is not found
                     if (currentPaymentListener) off(currentPaymentListener); 
                     return;
                 }
@@ -468,10 +649,10 @@
                 // 1. Check Role and enforce access control (critical security step)
                 if ((user.role?.toLowerCase() || 'user') !== 'user') {
                     showToast("Access Denied: This page is for members only.", 'error');
-                    // Remove listeners before redirecting
                     off(userRef); 
                     if (currentPaymentListener) off(currentPaymentListener); 
-                    setTimeout(() => window.location.href = 'index.html', 500);
+                    // Use logout() to clear session before redirect
+                    setTimeout(logout, 500);
                     return;
                 }
                 
@@ -498,7 +679,11 @@
          * @param {object} user The user data object.
          */
         function renderDashboard(user) {
-            document.getElementById('user-name-header').textContent = user.name || 'Member';
+            const userName = user.name || 'Member';
+            document.getElementById('user-name-header').textContent = userName;
+            const desktopHeader = document.getElementById('user-name-header-desktop');
+            if (desktopHeader) desktopHeader.textContent = userName;
+
             document.getElementById('profile-not-found').classList.add('hidden');
             
             // Profile Details
@@ -507,6 +692,8 @@
             document.getElementById('profile-address').textContent = user.address || 'N/A';
             document.getElementById('profile-dob').textContent = user.dob || 'N/A';
             document.getElementById('fee-amount').textContent = `Rs. ${user.monthlyPaidAmount?.toLocaleString() || '0'}`;
+
+            showView('dashboard');
         }
         
         /**
@@ -514,7 +701,6 @@
          * @param {object} user The user data object.
          */
         function fetchCurrentMonthPaymentRealtime(user) {
-            // Stop any existing listener before setting a new one (in case monthlyFee changed)
             if (currentPaymentListener) {
                 off(currentPaymentListener);
             }
@@ -530,18 +716,16 @@
 
             let statusMessageElement = document.getElementById('payment-status-message');
             
-            // Set initial loading state
             statusMessageElement.classList.remove('bg-green-500', 'bg-yellow-500', 'bg-red-600');
-            statusMessageElement.classList.add('bg-white', 'text-gray-500');
+            statusMessageElement.classList.add('bg-gray-700', 'text-gray-400');
             statusMessageElement.textContent = 'Checking payment status...';
             
             document.getElementById('paid-amount').textContent = 'Rs. 0';
             document.getElementById('due-amount').textContent = 'Rs. 0';
 
             const paymentRef = ref(db, `${PAYMENTS_PATH}/${userPhoneKey}/${paymentKey}`);
-            currentPaymentListener = paymentRef; // Store the reference
+            currentPaymentListener = paymentRef;
 
-            // Listen for REALTIME updates on the current month's payment
             onValue(paymentRef, (snapshot) => {
                 let paidAmount = 0;
                 
@@ -556,10 +740,15 @@
                 document.getElementById('paid-amount').textContent = `Rs. ${paidAmount.toLocaleString()}`;
                 document.getElementById('due-amount').textContent = `Rs. ${dueAmount.toLocaleString()}`;
                 
-                // Update status message
-                statusMessageElement.classList.remove('bg-white', 'text-gray-500');
-                statusMessageElement.classList.remove('bg-green-500', 'bg-yellow-500', 'bg-red-600'); // Clear old status class
-                statusMessageElement.classList.add(statusClass);
+                statusMessageElement.classList.remove('bg-gray-700', 'text-gray-400');
+                statusMessageElement.classList.remove('bg-green-500', 'bg-yellow-500', 'bg-red-600'); 
+                
+                let statusBgClass;
+                if (statusClass.includes('green')) statusBgClass = 'bg-green-700/80 text-white';
+                else if (statusClass.includes('yellow')) statusBgClass = 'bg-yellow-700/80 text-white';
+                else statusBgClass = 'bg-red-700/80 text-white';
+
+                statusMessageElement.classList.add(statusBgClass);
                 
                 let message = status;
                 if (status.includes('Due')) {
@@ -592,16 +781,13 @@
                     const paymentsByYear = snapshot.val();
                     let payments = [];
                     
-                    // Flatten the payment structure
                     for (const year in paymentsByYear) {
                         const paymentsByMonth = paymentsByYear[year];
                         for (const month in paymentsByMonth) {
-                            // Add year/month to the payment object for sorting/display
                             payments.push({ ...paymentsByMonth[month], monthYearKey: `${year}-${month}` });
                         }
                     }
 
-                    // Sort payments by monthYearKey (YYYY-MM) descending
                     payments.sort((a, b) => (b.monthYearKey || '').localeCompare(a.monthYearKey || ''));
 
                     payments.forEach(payment => {
@@ -609,23 +795,22 @@
                         const due = monthlyFee - payment.amount;
                         const { status, class: statusClass } = getPaymentStatus(due, monthlyFee);
 
-                        // Extract status text and clean up class
                         const statusText = status.split('. ')[0].replace('!', '');
-                        const displayStatusClass = statusClass.includes('green') ? 'bg-green-100 text-green-800' : 
-                                                   statusClass.includes('yellow') ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800';
+                        const displayStatusClass = statusClass.includes('green') ? 'bg-green-800 text-green-300' : 
+                                                   statusClass.includes('yellow') ? 'bg-yellow-800 text-yellow-300' : 'bg-red-800 text-red-300';
                         
                         const paidOnDate = payment.paidOn ? new Date(payment.paidOn).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : 'N/A';
                         
                         htmlContent += `
                             <tr>
-                                <td class="px-4 py-2 whitespace-nowrap text-sm font-medium text-gray-900">${payment.monthYear || payment.monthYearKey || 'N/A'}</td>
-                                <td class="px-4 py-2 whitespace-nowrap text-sm text-green-700">Rs. ${payment.amount?.toLocaleString() || '0'}</td>
+                                <td class="px-4 py-2 whitespace-nowrap text-sm font-medium text-gray-100">${payment.monthYear || payment.monthYearKey || 'N/A'}</td>
+                                <td class="px-4 py-2 whitespace-nowrap text-sm text-yellow-400">Rs. ${payment.amount?.toLocaleString() || '0'}</td>
                                 <td class="px-4 py-2 whitespace-nowrap">
                                     <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${displayStatusClass}">
                                         ${statusText}
                                     </span>
                                 </td>
-                                <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-500">${paidOnDate}</td>
+                                <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-400">${paidOnDate}</td>
                             </tr>
                         `;
                     });
@@ -671,12 +856,9 @@
                     dob: dob,
                 };
 
-                // Use update to only modify the specified fields
                 await update(userRef, updatedData); 
                 showToast("Your details updated successfully.", 'success');
                 
-                // The loadUserData onValue listener will handle re-rendering automatically
-
                 hideEditProfileModal();
             } catch (error) {
                 console.error("Profile Edit Error:", error);
@@ -687,11 +869,14 @@
         }
 
         function logout() {
-            // Stop listeners before navigating away
             const userRef = ref(db, `${USERS_PATH}/${userPhoneKey}`);
             off(userRef);
             if (currentPaymentListener) off(currentPaymentListener); 
             
+            // Clear all session data upon logout
+            localStorage.removeItem('loggedInUserKey');
+            localStorage.removeItem('loggedInUserRole');
+
             console.log("Member logged out. Redirecting to index.html");
             window.location.href = 'index.html';
         }
@@ -707,18 +892,13 @@
 
         // Initial setup on page load
         document.addEventListener('DOMContentLoaded', () => {
-            if (!userPhoneKey) {
-                // If phone is missing from URL, show toast and redirect with a fast delay
-                showToast("Authentication required. Redirecting...", 'error');
-                
-                // Redirecting after a short delay
-                setTimeout(() => {
-                    window.location.href = 'index.html';
-                }, 500); 
-            } else {
+            // Check session before loading data
+            if (checkUserSession()) {
+                // If the session check passed, userPhoneKey is now correctly set (either from URL or LocalStorage)
                 loadUserData(); 
                 showView('dashboard'); 
             }
+            // If checkUserSession failed, it already called logout/redirected
         });
 
     </script>
