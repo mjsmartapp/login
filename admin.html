@@ -107,13 +107,13 @@
         .grid-card {
             background: rgba(0, 0, 0, 0.4);
             border: 1px solid rgba(255, 255, 255, 0.15);
-            border-radius: 0.75rem; /* Slightly larger border radius */
-            padding: 1.25rem; /* Increased padding */
+            border-radius: 0.75rem; 
+            padding: 1.25rem; 
             display: grid;
-            gap: 1rem; /* Increased gap */
-            grid-template-columns: repeat(2, 1fr); /* Default: 2 columns */
+            gap: 1rem; 
+            grid-template-columns: 1fr 1fr; /* Default: 2 columns for mobile display */
             align-items: center;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); /* Deeper shadow */
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); 
             transition: background 0.2s, box-shadow 0.2s;
         }
 
@@ -123,31 +123,48 @@
         }
         
         /* Specific layout adjustments for professional look */
+        
         @media (min-width: 640px) { /* sm */
+            /* Dashboard Unpaid: 4 columns for large screens, 2x2 for small */
             #dashboard-unpaid-grid .grid-card {
-                 grid-template-columns: 50px 1.5fr 1fr 1fr 100px; /* S.No, Name, Phone, Due, Action */
+                 grid-template-columns: 1fr 1fr 1fr 1fr; 
+            }
+            
+            /* User Management: 6 columns for large screens, 2x3 for small */
+            #user-management-grid .grid-card {
+                 grid-template-columns: 1fr 1fr; 
+                 gap: 0.75rem;
+            }
+
+            /* Money Updates: Enforcing 2 columns for the Mobile Data Rows */
+            #money-updates-grid .grid-card {
+                 grid-template-columns: 1fr 1fr; 
+                 gap: 0.75rem;
             }
         }
+
         @media (min-width: 1024px) { /* lg */
             #user-management-grid .grid-card {
-                grid-template-columns: repeat(5, 1fr) 180px; /* Name, Phone, DOB, Monthly, Role, Actions */
+                grid-template-columns: repeat(5, 1fr) 180px; 
             }
+            
+            /* Money Updates Grid Layout for large screens (7 columns total now) */
             #money-updates-grid .grid-card {
-                 grid-template-columns: 50px 1.2fr 1fr 1fr 1fr 1fr 120px 150px; /* S.No, Name, Phone, Fee, Paid, Due, Status, Actions */
+                 grid-template-columns: 1.2fr 1fr 1fr 1fr 1fr 120px 150px; /* Name, Phone, Fee, Paid, Due, Status, Actions */
             }
         }
 
         /* Responsive Column Span Defaults (Mobile) */
         .grid-data-item {
-            grid-column: span 2; /* Full width on mobile by default for better readability */
+            grid-column: span 1; /* Default to single column for 1fr 1fr grid */
             display: flex;
             flex-direction: column;
         }
         .grid-data-actions {
-            grid-column: span 2; /* Full width on mobile by default */
+            grid-column: span 1; 
         }
         
-        /* Column Span adjustments for larger screens (lg) - making them single column */
+        /* Column Span adjustments for larger screens (lg) */
         @media (min-width: 1024px) { 
             #dashboard-unpaid-grid .grid-data-item { grid-column: span 1; }
             #dashboard-unpaid-grid .grid-data-actions { grid-column: span 1; }
@@ -157,32 +174,67 @@
             
             #money-updates-grid .grid-data-item { grid-column: span 1; }
             #money-updates-grid .grid-data-actions { grid-column: span 1; }
-            
-            /* Specific fix for money updates (S.No is smaller) */
-            #money-updates-grid .grid-data-item:nth-child(1) { max-width: 50px; }
+        }
+        
+        /* Custom Mobile Layouts - Right Alignments (Row-by-Row Look) */
+        
+        /* Dashboard Unpaid (2x2) */
+        #dashboard-unpaid-grid .grid-card .grid-data-item:nth-child(2), /* Phone */
+        #dashboard-unpaid-grid .grid-card .grid-data-actions {
+            text-align: right; 
+            align-items: flex-end;
         }
 
+        /* User Management (2x3) */
+        #user-management-grid .grid-card .grid-data-item:nth-child(2), /* Phone */
+        #user-management-grid .grid-card .grid-data-item:nth-child(4), /* Monthly Fee */
+        #user-management-grid .grid-card .grid-data-actions {
+            text-align: right; 
+            align-items: flex-end; 
+        }
+
+        /* Money Updates Grid Custom Alignment (2x4 data + 1 action) */
+        #money-updates-grid .grid-card .grid-data-item:nth-child(2), /* Phone */
+        #money-updates-grid .grid-card .grid-data-item:nth-child(4), /* Total Paid */
+        #money-updates-grid .grid-card .grid-data-item:nth-child(6) { /* Status */
+            text-align: right; 
+            align-items: flex-end; 
+        }
+        
+        /* Money Updates Action Row is bottom center and spans full width */
+        #money-updates-grid .grid-data-actions {
+            grid-column: span 2; 
+            justify-content: center; 
+            margin-top: 0.5rem; 
+        }
+        
+        /* Fix for Money Updates header on LG screens */
+        #money-updates-header .grid-header:last-child {
+            text-align: center;
+        }
+
+
         .grid-header {
-            font-size: 0.85rem; /* Slightly larger text-sm */
-            font-weight: 600; /* Semibold */
-            color: var(--accent-gold); /* Gold color for headers */
+            font-size: 0.85rem; 
+            font-weight: 600; 
+            color: var(--accent-gold); 
             text-transform: uppercase;
             letter-spacing: 0.05em; 
             padding-bottom: 0.5rem;
-            border-bottom: 2px solid rgba(255, 199, 0, 0.3); /* Gold accent divider */
+            border-bottom: 2px solid rgba(255, 199, 0, 0.3); 
             white-space: nowrap;
         }
         
         .grid-label {
             display: block;
-            font-size: 0.75rem; /* text-xs */
+            font-size: 0.75rem; 
             font-weight: 300;
-            color: #9ca3af; /* text-gray-400 */
+            color: #9ca3af; 
             margin-bottom: 2px;
         }
         
         .grid-value {
-            font-size: 0.95rem; /* nearly text-base */
+            font-size: 0.95rem; 
             font-weight: 500;
             color: #e5e7eb;
         }
@@ -258,11 +310,10 @@
                     <div id="current-month-unpaid-list-container" class="space-y-4 pt-4">
                         <h3 class="text-2xl font-semibold text-red-500">Current Month Unpaid List (Users)</h3>
                         
-                        <div class="hidden lg:grid grid-cols-5 gap-4 bg-gray-800 p-4 rounded-t-lg"
-                             style="grid-template-columns: 50px 1.5fr 1fr 1fr 100px;">
-                            <div class="grid-header">S.No</div>
+                        <div class="hidden lg:grid grid-cols-4 gap-4 bg-gray-800 p-4 rounded-t-lg"
+                             style="grid-template-columns: 1.5fr 1fr 1fr 100px;">
                             <div class="grid-header">Name</div>
-                            <div class="grid-header">Phone</div>
+                            <div class="grid-header text-right">Phone</div>
                             <div class="grid-header">Due Amount (Rs.)</div>
                             <div class="grid-header text-right">Action</div>
                         </div>
@@ -333,16 +384,15 @@
                     </div>
 
                     <div class="glass-card p-4 rounded-lg shadow-inner">
-                        <div id="money-updates-header" class="hidden lg:grid grid-cols-8 gap-4 bg-gray-800 p-4 rounded-t-lg"
-                             style="grid-template-columns: 50px 1.2fr 1fr 1fr 1fr 1fr 120px 150px;">
-                            <div class="grid-header">S.No</div>
+                        <div id="money-updates-header" class="hidden lg:grid grid-cols-7 gap-4 bg-gray-800 p-4 rounded-t-lg"
+                             style="grid-template-columns: 1.2fr 1fr 1fr 1fr 1fr 120px 150px;">
                             <div class="grid-header">Name</div>
                             <div class="grid-header">Phone</div>
                             <div class="grid-header">Monthly Fee</div>
                             <div class="grid-header">Total Paid (Rs.)</div> 
                             <div class="grid-header">Due Amount (Rs.)</div>
                             <div class="grid-header" id="money-grid-status-header">Status (Current Month)</div>
-                            <div class="grid-header text-right">Actions</div>
+                            <div class="grid-header text-center">Actions</div>
                         </div>
                         
                         <div id="money-updates-grid" class="space-y-3 pb-3">
@@ -416,15 +466,15 @@
                 </div>
 
                 <div>
-                    <label for="payment-month" class="block text-sm font-medium text-gray-400">Select Month</label>
+                    <label for="payment-month" class="block text-sm font-medium text-gray-400">Select Month to Apply Payment To (Advance Option)</label>
                     <select id="payment-month" required class="form-input" onchange="updatePaymentModalDetails()">
                         </select>
                 </div>
 
-                <div>
+                <div class="mt-4">
                     <label for="payment-amount" class="block text-sm font-medium text-gray-400">Amount Paid Now (in Rs.)</label>
                     <input type="number" id="payment-amount" required class="form-input" min="0" placeholder="Enter amount">
-                    <p class="text-xs text-gray-500 mt-1">Enter the amount being paid in this transaction. This will be added to any existing payment for the selected month.</p>
+                    <p class="text-xs text-gray-500 mt-1">Enter the amount being paid in this transaction. This will be added to any existing payment for the **selected month**.</p>
                 </div>
 
                 <button type="submit" class="w-full py-2 px-4 rounded-lg bg-green-600 text-white font-semibold hover:bg-green-700 transition duration-300 shadow-md">
@@ -632,6 +682,36 @@
             }
             return months;
         }
+        
+        /**
+         * Generates a list of months for the payment modal dropdown (past 3 months + next 6 months).
+         * @returns {Array<{value: string, text: string}>} Month list.
+         */
+        function getPaymentMonthNames() {
+            const months = [];
+            const today = new Date();
+            
+            // Add next 6 months (advance)
+            for (let i = 0; i <= 6; i++) {
+                const d = new Date(today.getFullYear(), today.getMonth() + i, 1); 
+                const value = `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, '0')}`;
+                const text = d.toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
+                months.push({ value, text, isFuture: i > 0 });
+            }
+            // Add previous 3 months (overdue review)
+            for (let i = 1; i <= 3; i++) {
+                const d = new Date(today.getFullYear(), today.getMonth() - i, 1); 
+                const value = `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, '0')}`;
+                const text = d.toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
+                months.push({ value, text, isFuture: false });
+            }
+            
+            // Sort by monthValue descending (latest first)
+            months.sort((a, b) => (b.value).localeCompare(a.value));
+            
+            return months;
+        }
+
 
         // --- NAVIGATION & UI CONTROL ---
 
@@ -696,7 +776,15 @@
             const monthlyFee = user.monthlyPaidAmount || 0;
             
             // Format the month for display
-            const displayMonth = new Date(year, month - 1).toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
+            const displayDate = new Date(year, month - 1);
+            const displayMonth = displayDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
+            
+            // Check if selected month is in the future
+            const today = new Date();
+            const selectedMonthStart = new Date(displayDate.getFullYear(), displayDate.getMonth(), 1);
+            const currentMonthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+            const isAdvance = selectedMonthStart > currentMonthStart;
+
 
             // Set static user details
             document.getElementById('modal-monthly-fee').textContent = `Rs. ${monthlyFee.toLocaleString()}`;
@@ -710,6 +798,19 @@
                 
                 const remainingDue = monthlyFee - alreadyPaid;
                 const displayDue = Math.max(0, remainingDue); // Never show negative due
+
+                // Update labels and values
+                const paidLabel = document.getElementById('modal-paid-label');
+                const remainingLabel = document.querySelector('#modal-remaining-due').previousElementSibling;
+
+                if (isAdvance) {
+                    paidLabel.innerHTML = `Already Paid (Advance for <span id="modal-month-display">${displayMonth}</span>):`;
+                    remainingLabel.textContent = `Required Advance Payment:`;
+                } else {
+                    paidLabel.innerHTML = `Already Paid (for <span id="modal-month-display">${displayMonth}</span>):`;
+                    remainingLabel.textContent = `Remaining Due:`;
+                }
+
 
                 // Update display elements
                 document.getElementById('modal-already-paid').textContent = `Rs. ${alreadyPaid.toLocaleString()}`;
@@ -739,16 +840,17 @@
             const user = allUsers[phoneKey];
             if (!user) { showToast("User data not found.", 'error'); return; }
 
-            // 1. Populate Month Dropdown
+            // 1. Populate Month Dropdown (Last 3 + Current + Next 6)
             const monthSelect = document.getElementById('payment-month');
             monthSelect.innerHTML = '';
-            const monthList = getMonthNames(6); 
+            const monthList = getPaymentMonthNames(); 
             const currentMonthYear = new Date().toISOString().substring(0, 7);
 
             monthList.forEach(month => {
                 const option = document.createElement('option');
                 option.value = month.value;
-                option.textContent = month.text;
+                option.textContent = month.text + (month.isFuture ? ' (Advance)' : '');
+                
                 if (month.value === currentMonthYear) {
                     option.selected = true;
                 }
@@ -879,6 +981,7 @@
         
         /**
          * Renders the grid of current month unpaid users on the Dashboard.
+         * !!! MODIFIED FUNCTION to implement the new 2x2 layout without S.No !!!
          */
         function renderDashboardUnpaidGrid() {
             const gridContainer = document.getElementById('dashboard-unpaid-grid');
@@ -890,7 +993,6 @@
             }
 
             currentMonthUnpaidUsers.forEach((user, index) => {
-                const sno = index + 1;
                 const displayDue = `Rs. ${user.dueAmount.toLocaleString()}`;
 
                 // The grid-card class will manage the layout based on screen size
@@ -898,22 +1000,17 @@
                     <div class="grid-card">
                         
                         <div class="grid-data-item">
-                            <span class="grid-label lg:hidden">S.No:</span>
-                            <span class="grid-value text-gray-200">${sno}</span>
-                        </div>
-                        
-                        <div class="grid-data-item">
-                            <span class="grid-label lg:hidden">Name:</span>
+                            <span class="grid-label">Name:</span>
                             <span class="grid-value font-semibold text-white">${user.name || 'N/A'}</span>
                         </div>
                         
-                        <div class="grid-data-item">
-                            <span class="grid-label lg:hidden">Phone:</span>
+                        <div class="grid-data-item text-right">
+                            <span class="grid-label">Phone:</span>
                             <span class="grid-value text-gray-400">${user.phone || user.phoneKey}</span>
                         </div>
                         
                         <div class="grid-data-item">
-                            <span class="grid-label lg:hidden">Due Amount:</span>
+                            <span class="grid-label">Due Amount:</span>
                             <span class="grid-value text-red-400 font-extrabold">${displayDue}</span>
                         </div>
                         
@@ -1020,6 +1117,7 @@
 
         /**
          * Filters and populates the Money Updates grid.
+         * !!! MODIFIED FUNCTION to implement the new 2x4 layout without S.No !!!
          */
         function renderMoneyUpdatesGrid() {
             const gridContainer = document.getElementById('money-updates-grid');
@@ -1046,15 +1144,10 @@
                 );
             }
             
-            let sno = 1; // Initialize S.No counter
-
             // 4. Generate rows and apply Status Filter
             for (const [phoneKey, user] of filteredUsers) {
                 const monthlyFee = user.monthlyPaidAmount || 0;
-                // Use selectedMonthPayment, which was populated in fetchPaymentsForSelectedMonth (only for role=user keys)
                 const paidAmount = selectedMonthPayment[phoneKey] || 0; 
-                
-                // Calculate the true due amount (can be negative if overpaid)
                 const dueAmount = monthlyFee - paidAmount; 
                 const currentStatus = getPaymentStatus(dueAmount, monthlyFee);
                 
@@ -1081,48 +1174,47 @@
                         break;
                 }
 
-                // The grid-card class manages the layout
+                // New layout order:
+                // 1 (Name) | 2 (Phone, right)
+                // 3 (Monthly Fee) | 4 (Total Paid, right)
+                // 5 (Due Amount) | 6 (Status, right)
+                // 7 (Action Buttons, centered, spans 2 columns)
                 htmlContent += `
                     <div class="grid-card">
                         
                         <div class="grid-data-item">
-                            <span class="grid-label lg:hidden">S.No:</span>
-                            <span class="grid-value">${sno++}</span>
-                        </div>
-                        
-                        <div class="grid-data-item">
-                            <span class="grid-label lg:hidden">Name:</span>
+                            <span class="grid-label">Name:</span>
                             <span class="grid-value font-semibold text-white">${user.name || 'N/A'}</span>
                         </div>
                         
-                        <div class="grid-data-item">
-                            <span class="grid-label lg:hidden">Phone:</span>
+                        <div class="grid-data-item text-right">
+                            <span class="grid-label">Phone:</span>
                             <span class="grid-value text-gray-400">${user.phone || phoneKey}</span>
                         </div>
                         
                         <div class="grid-data-item">
-                            <span class="grid-label lg:hidden">Monthly Fee:</span>
+                            <span class="grid-label">Monthly Fee:</span>
                             <span class="grid-value text-yellow-400">${displayFee}</span>
                         </div>
                         
-                        <div class="grid-data-item">
-                            <span class="grid-label lg:hidden">Total Paid:</span>
+                        <div class="grid-data-item text-right">
+                            <span class="grid-label">Total Paid:</span>
                             <span class="grid-value text-green-500 font-semibold">${displayPaid}</span> 
                         </div>
                         
                         <div class="grid-data-item">
-                            <span class="grid-label lg:hidden">Due Amount:</span>
+                            <span class="grid-label">Due Amount:</span>
                             <span class="grid-value ${dueAmount > 0 ? 'text-red-400 font-extrabold' : 'text-green-500'}">${displayDue}</span>
                         </div>
                         
-                        <div class="grid-data-item">
-                            <span class="grid-label lg:hidden">${document.getElementById('money-grid-status-header').textContent}:</span>
+                        <div class="grid-data-item text-right">
+                            <span class="grid-label">${document.getElementById('money-grid-status-header').textContent}:</span>
                             <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${statusClass}">
                                 ${currentStatus}
                             </span>
                         </div>
                         
-                        <div class="grid-data-actions flex justify-end flex-wrap gap-2 items-center">
+                        <div class="grid-data-actions flex justify-center space-x-2 items-center">
                             <button onclick="showPaymentUpdateModal('${phoneKey}')" 
                                 class="text-white bg-yellow-600 hover:bg-yellow-700 px-2 py-1 rounded-full text-xs font-bold transition duration-150 shadow-sm">
                                 Pay
@@ -1158,7 +1250,6 @@
 
         /**
          * Loads and displays all user data from Firebase, updating stats and both grids.
-         * MODIFIED: Updates total-users stat to only count role='user' and renders to a grid.
          */
         function loadUserData() {
             showLoader();
@@ -1197,28 +1288,35 @@
                         const displayAmount = `Rs. ${user.monthlyPaidAmount?.toLocaleString() || '0'}`;
 
                         // --- USER MANAGEMENT GRID GENERATION (All Roles) ---
+                        // Layout: Name/Phone | DOB/Monthly Fee | Role/Actions
                         htmlContent += `
                             <div class="grid-card">
+                                
                                 <div class="grid-data-item">
-                                    <span class="grid-label lg:hidden">Name:</span>
+                                    <span class="grid-label">Name:</span>
                                     <span class="grid-value font-semibold text-white">${user.name || 'N/A'}</span>
                                 </div>
-                                <div class="grid-data-item">
-                                    <span class="grid-label lg:hidden">Phone:</span>
+                                
+                                <div class="grid-data-item text-right">
+                                    <span class="grid-label">Phone:</span>
                                     <span class="grid-value text-gray-400">${user.phone || phoneKey}</span>
                                 </div>
+                                
                                 <div class="grid-data-item">
-                                    <span class="grid-label lg:hidden">DOB:</span>
+                                    <span class="grid-label">DOB:</span>
                                     <span class="grid-value text-gray-400">${user.dob || 'N/A'}</span>
                                 </div>
-                                <div class="grid-data-item">
-                                    <span class="grid-label lg:hidden">Monthly Fee:</span>
+                                
+                                <div class="grid-data-item text-right">
+                                    <span class="grid-label">Monthly Fee:</span>
                                     <span class="grid-value text-yellow-400 font-bold">${displayAmount}</span>
                                 </div>
+                                
                                 <div class="grid-data-item">
-                                    <span class="grid-label lg:hidden">Role:</span>
+                                    <span class="grid-label">Role:</span>
                                     <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${roleClass}">${displayRole}</span>
                                 </div>
+                                
                                 <div class="grid-data-actions flex justify-end space-x-2 items-center">
                                     <button onclick="showEditUserModal('${sanitizedPhoneKey}')" class="text-yellow-500 hover:text-yellow-400 focus:outline-none text-sm px-2 py-1 rounded-full bg-gray-800">Edit</button>
                                     <button onclick="deleteUserPrompt('${sanitizedPhoneKey}')" class="text-red-500 hover:text-red-400 focus:outline-none text-sm px-2 py-1 rounded-full bg-gray-800">Delete</button>
