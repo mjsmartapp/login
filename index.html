@@ -5,10 +5,28 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Login</title>
 
+<script>
+    (function() {
+        // Check Local Storage immediately
+        const key = localStorage.getItem('loggedInUserKey');
+        const role = localStorage.getItem('loggedInUserRole');
+        
+        if (key && role) {
+            // If data exists, redirect before showing the login screen
+            if (role === 'admin') {
+                window.location.replace('admin.html');
+            } else {
+                window.location.replace('user.html?phone=' + key);
+            }
+        }
+    })();
+</script>
+
 <script src="https://cdn.tailwindcss.com"></script>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
 
 <style>
+    /* ... (Your existing styles remain exactly the same) ... */
     body{
         font-family:'Poppins',sans-serif;
         background:linear-gradient(140deg,#0a0e14,#1c222c,#2d3340);
@@ -16,8 +34,6 @@
         display:flex;align-items:center;justify-content:center;
         overflow:hidden;
     }
-
-    /* ★ Golden Diwali Sparks */
     .spark{
         position:absolute;width:6px;height:6px;
         background:rgba(255,215,0,.85);border-radius:50%;
@@ -28,8 +44,6 @@
         0%{transform:translateY(110vh) scale(.3);opacity:.4;}
         100%{transform:translateY(-20vh) scale(1);opacity:1;}
     }
-
-    /* ★ Login Card */
     .login-box{
         width:100%;max-width:420px;
         padding:38px;border-radius:14px;text-align:center;
@@ -38,7 +52,6 @@
         box-shadow:0 0 35px rgba(255,189,45,.35);
         color:#fff;position:relative;
     }
-
     .diya-banner{
         background:url('https://i.postimg.cc/9MYG2xP2/diwali.png') center no-repeat;
         background-size:65px;height:70px;
@@ -46,7 +59,6 @@
         animation:flicker 2.6s infinite ease-in-out;
     }
     @keyframes flicker{0%,100%{opacity:.8;}50%{opacity:1;}}
-
     .input{
         width:100%;padding:12px;border-radius:8px;margin-top:4px;
         border:1px solid rgba(255,255,255,.18);
@@ -55,7 +67,6 @@
     .input:focus{
         border-color:#ffcc3b;box-shadow:0 0 10px #ffcc3b;outline:none;
     }
-
     .btn-login{
         width:100%;padding:13px;margin-top:6px;border-radius:8px;font-weight:600;
         background:linear-gradient(to right,#ffbb00,#ff7b00);
@@ -63,66 +74,43 @@
         box-shadow:0 0 18px rgba(255,195,0,.55);transition:.28s;
     }
     .btn-login:hover{transform:scale(1.05);box-shadow:0 0 30px rgba(255,195,0,.85);}
-
-    #loader-bar .progress{
-        position:absolute;height:100%;background:#ffcf43;
-        animation:slide 1.5s infinite linear;
+    #loader-bar{
+        background:rgba(255, 255, 255, 0.1);
     }
-    @keyframes slide{0%{left:-100%}100%{left:100%}}
+    #loader-bar .progress{
+        position:absolute;height:100%;width:100%;
+        background:linear-gradient(90deg, transparent, #ffcc3b, transparent);
+        animation:glow 1.5s infinite ease-in-out; left:0;
+    }
+    @keyframes glow{
+        0%,100%{opacity:.2;transform:scaleX(0.5);filter:drop-shadow(0 0 5px #ffcc3b);}
+        50%{opacity:1;transform:scaleX(1);filter:drop-shadow(0 0 15px gold);}
+    }
 </style>
 </head>
-
 <body>
 
 <script>
 for(let i=0;i<30;i++){
     let s=document.createElement("div");
-    s.className="spark";
-    s.style.left=Math.random()*100+"vw";
-    s.style.animationDelay=Math.random()*6+"s";
-    document.body.appendChild(s);
+    s.className="spark";s.style.left=Math.random()*100+"vw";
+    s.style.animationDelay=Math.random()*6+"s";document.body.appendChild(s);
 }
 </script>
 
 <div class="login-box">
-    
     <div class="diya-banner"></div>
     <h2 class="text-xl font-bold text-yellow-300 mt-1">Please Login</h2>
-    <p class="text-gray-300 text-sm mb-6"></p>
-
-    <div id="loader-bar" class="absolute top-0 left-0 w-full h-1 bg-white/15 hidden">
-        <div class="progress"></div>
-    </div>
+    <div id="loader-bar" class="absolute top-0 left-0 w-full h-1 bg-white/15 hidden"><div class="progress"></div></div>
 
     <form id="login-form" onsubmit="handleLogin(event)" class="space-y-4">
-
-        <div>
-            <input id="login-phone" type="tel" maxlength="10" pattern="[0-9]{10}"
-            placeholder="Phone Number" required class="input placeholder-white/60">
-        </div>
-
-        <div>
-            <input id="login-dob" type="date" required class="input text-white">
-        </div>
-
+        <div><input id="login-phone" type="tel" maxlength="10" pattern="[0-9]{10}" placeholder="Phone Number" required class="input placeholder-white/60"></div>
+        <div><input id="login-dob" type="date" required class="input text-white"></div>
         <button class="btn-login">Login</button>
-        
-        <p class="text-sm mt-4">
-            <a href="https://www.mjsmartapps.xyz" target="_blank" 
-               class="text-gray-400 hover:text-yellow-400 transition-colors duration-200">
-                Designed by : MJ SMART APPS
-            </a>
-        </p>
-        </form>
-
-    <div id="auth-display" class="hidden text-center mt-5 text-white">
-        <h3 class="text-lg font-semibold mb-2">Verified Success</h3>
-        <pre id="user-data" class="text-xs bg-white/25 p-3 rounded mt-2 text-white"></pre>
-    </div>
+        <p class="text-sm mt-4"><a href="https://www.mjsmartapps.xyz" target="_blank" class="text-gray-400 hover:text-yellow-400 transition-colors duration-200">Designed by : MJ SMART APPS</a></p>
+    </form>
 </div>
-
 <div id="toast-container" class="fixed top-5 right-5 space-y-2 z-50"></div>
-
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
@@ -138,72 +126,47 @@ for(let i=0;i<30;i++){
         appId:"1:981299309786:web:2dbf4d49d7e31cb8a749e3",
         measurementId:"G-1T29TY0FXB"
     });
-
     const db=getDatabase(app);
     const USERS_PATH='users';
 
     function toast(msg,type='success'){
         const d=document.createElement("div");
-        d.className=`px-4 py-2 rounded font-semibold text-white shadow-md 
-        ${type=='error'?'bg-red-600':'bg-green-600'}`;
+        d.className=`px-4 py-2 rounded font-semibold text-white shadow-md ${type=='error'?'bg-red-600':'bg-green-600'}`;
         d.innerText=msg;
         document.getElementById("toast-container").appendChild(d);
         setTimeout(()=>d.remove(),3500);
     }
-
     const clean=p=>p.replace(/[^0-9]/g,'');
 
-    /**
-     * Handles the login process, stores session in localStorage for Admin, 
-     * and redirects based on role.
-     */
     window.handleLogin=async(e)=>{
         e.preventDefault();
-        // Clear any previous session data before attempting new login
         localStorage.removeItem('loggedInUserKey');
         localStorage.removeItem('loggedInUserRole');
-
         document.getElementById("loader-bar").classList.remove("hidden");
-
         const rawPhone = document.getElementById("login-phone").value.trim();
         const phone = clean(rawPhone);
         const dob = document.getElementById("login-dob").value;
 
         try{
             const snap=await get(ref(db,`${USERS_PATH}/${phone}`));
-            if(!snap.exists()) {
-                toast("Phone not registered",'error');
-                return;
-            }
-
+            if(!snap.exists()) { toast("Phone not registered",'error'); document.getElementById("loader-bar").classList.add("hidden"); return; }
             const user=snap.val();
             if(user.dob===dob){
                 toast("Login Success 🎉");
                 const role=(user.role||'user').toLowerCase();
-                
-                // --- SESSION STORAGE: Store key and role on successful login ---
+                // Store Session
                 localStorage.setItem('loggedInUserKey', phone);
                 localStorage.setItem('loggedInUserRole', role);
-                // ----------------------------------------------------------------
                 
-                // Redirect based on role
-                if (role === "admin") {
-                    window.location.href = "admin.html";
-                } else {
-                    window.location.href = `user.html?phone=${phone}`;
-                }
-                
+                // Redirect
+                if (role === "admin") window.location.href = "admin.html";
+                else window.location.href = `user.html?phone=${phone}`;
             } else {
                 toast("DOB Incorrect",'error');
             }
-        }
-        catch(err){ 
-            toast("Login Failed: "+err,'error'); 
-        }
-
+        } catch(err){ toast("Login Failed: "+err,'error'); }
         document.getElementById("loader-bar").classList.add("hidden");
     }
 </script>
-
 </body>
 </html>
