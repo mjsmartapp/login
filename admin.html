@@ -471,6 +471,15 @@
                         </select>
                 </div>
 
+                <div>
+                    <label for="payment-mode" class="block text-sm font-medium text-gray-400">Payment Mode</label>
+                    <select id="payment-mode" required class="form-input">
+                        <option value="Cash">Cash</option>
+                        <option value="Online">Online (UPI/GPay)</option>
+                        <option value="Card">Card</option>
+                    </select>
+                </div>
+
                 <div class="mt-4">
                     <label for="payment-amount" class="block text-sm font-medium text-gray-400">Amount Paid Now (in Rs.)</label>
                     <input type="number" id="payment-amount" required class="form-input" min="0" placeholder="Enter amount">
@@ -501,6 +510,7 @@
                                 <th class="px-4 py-2 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Month/Year</th>
                                 <th class="px-4 py-2 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Amount Paid (Rs.)</th>
                                 <th class="px-4 py-2 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Paid On</th>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Mode</th>
                                 <th class="px-4 py-2 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Recorded By</th>
                             </tr>
                         </thead>
@@ -1385,11 +1395,14 @@
 
                     payments.forEach(payment => {
                         const paidOnDate = payment.paidOn ? new Date(payment.paidOn).toLocaleString() : 'N/A';
+                        const paymentMode = payment.paymentMode || 'Cash'; // Default to Cash if not present
+
                         htmlContent += `
                             <tr>
                                 <td class="px-4 py-2 whitespace-nowrap text-sm font-medium text-gray-200">${payment.monthYear || 'N/A'}</td>
                                 <td class="px-4 py-2 whitespace-nowrap text-sm text-green-500">Rs. ${payment.amount?.toLocaleString() || '0'}</td>
                                 <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-400">${paidOnDate}</td>
+                                <td class="px-4 py-2 whitespace-nowrap text-sm text-yellow-400">${paymentMode}</td>
                                 <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-400">${payment.recordedBy || 'System'}</td>
                             </tr>
                         `;
@@ -1553,7 +1566,9 @@
             const monthYear = document.getElementById('payment-month').value; // YYYY-MM
             // The amount paid *in this transaction*
             const amountPaidNow = parseInt(document.getElementById('payment-amount').value, 10); 
-            
+            // NEW: Get the Payment Mode
+            const paymentMode = document.getElementById('payment-mode').value;
+
             if (!phoneKey || !monthYear || isNaN(amountPaidNow) || amountPaidNow <= 0) { // Check for valid new payment amount
                 showToast("Please enter a valid amount greater than 0.", 'error');
                 return;
@@ -1579,11 +1594,12 @@
                     amount: newTotalPaidAmount, // Store the new cumulative total
                     paidOn: new Date().toISOString(),
                     recordedBy: loggedInAdminKey || 'Admin', // Store the key of the admin who recorded it
-                    monthYear: monthYear
+                    monthYear: monthYear,
+                    paymentMode: paymentMode // Store the selected Payment Mode
                 };
 
                 await set(paymentRef, paymentData);
-                showToast(`Payment of Rs. ${amountPaidNow} recorded. Total paid for ${monthYear} is now Rs. ${newTotalPaidAmount}.`, 'success');
+                showToast(`Payment of Rs. ${amountPaidNow} (${paymentMode}) recorded. Total paid for ${monthYear} is now Rs. ${newTotalPaidAmount}.`, 'success');
 
                 // If the recorded payment is for the currently selected month in the filter, 
                 // update the global payment status and re-render.
@@ -1662,4 +1678,3 @@
     </script>
 </body>
 </html>
-
