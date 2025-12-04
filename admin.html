@@ -75,6 +75,30 @@
             animation: indeterminate-loading 1.5s infinite linear;
         }
         
+        /* --- BUTTON LOADER ANIMATION (NEW) --- */
+        .btn-loading {
+            position: relative;
+            overflow: hidden;
+            pointer-events: none; /* Disable clicks */
+            opacity: 0.8;
+            cursor: wait;
+        }
+        .btn-loading::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            /* Shimmer effect */
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+            animation: btn-loading-anim 1.5s infinite;
+        }
+        @keyframes btn-loading-anim {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
         /* Drawer animation */
         .drawer {
             transition: transform 0.3s ease-in-out;
@@ -294,7 +318,7 @@
                     
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6"> 
                         <div class="glass-card sub-card p-5 rounded-lg shadow-md border-sky-500/50">
-                            <p class="text-sm font-medium text-sky-400">Total Registered Members (User Role)</p>
+                            <p class="text-sm font-medium text-sky-400">Total Registered Members</p>
                             <p id="total-users" class="text-3xl font-extrabold text-white mt-1">...</p>
                         </div>
                         <div class="glass-card sub-card p-5 rounded-lg shadow-md border-red-500/50">
@@ -302,10 +326,19 @@
                             <p id="total-admins" class="text-3xl font-extrabold text-white mt-1">...</p>
                         </div>
                         <div class="glass-card sub-card p-5 rounded-lg shadow-md border-yellow-500/50">
-                            <p class="text-sm font-medium text-yellow-400">Current Month Due Count (Users)</p>
+                            <p class="text-sm font-medium text-yellow-400">Current Month Due Count</p>
                             <p id="current-month-due-count" class="text-3xl font-extrabold text-white mt-1">...</p>
                         </div>
-                    </div>
+                        
+                        <div class="glass-card sub-card p-5 rounded-lg shadow-md border-orange-500/50">
+                            <p class="text-sm font-medium text-orange-400">Current Month Due Amount</p>
+                            <p id="current-month-due-amount" class="text-3xl font-extrabold text-white mt-1">...</p>
+                        </div>
+                        <div class="glass-card sub-card p-5 rounded-lg shadow-md border-green-500/50">
+                            <p class="text-sm font-medium text-green-400">Current Month Received Amount</p>
+                            <p id="current-month-received-amount" class="text-3xl font-extrabold text-white mt-1">...</p>
+                        </div>
+                        </div>
                     
                     <div id="current-month-unpaid-list-container" class="space-y-4 pt-4">
                         <h3 class="text-2xl font-semibold text-red-500">Current Month Unpaid List</h3>
@@ -433,7 +466,7 @@
                     <label for="new-reg-monthly-amount" class="block text-sm font-medium text-gray-400">Monthly Paid Amount (in Rs.)</label>
                     <input type="number" id="new-reg-monthly-amount" required class="form-input" value="1000" min="0" placeholder="e.g., 1000">
                 </div>
-                <button type="submit" class="w-full py-2 px-4 rounded-lg btn-gold transition duration-300 shadow-md">
+                <button type="submit" id="btn-register-user" class="w-full py-2 px-4 rounded-lg btn-gold transition duration-300 shadow-md">
                     Register User
                 </button>
             </form>
@@ -471,22 +504,13 @@
                         </select>
                 </div>
 
-                <div>
-                    <label for="payment-mode" class="block text-sm font-medium text-gray-400">Payment Mode</label>
-                    <select id="payment-mode" required class="form-input">
-                        <option value="Cash">Cash</option>
-                        <option value="Online">Online (UPI/GPay)</option>
-                        <option value="Card">Card</option>
-                    </select>
-                </div>
-
                 <div class="mt-4">
                     <label for="payment-amount" class="block text-sm font-medium text-gray-400">Amount Paid Now (in Rs.)</label>
                     <input type="number" id="payment-amount" required class="form-input" min="0" placeholder="Enter amount">
                     <p class="text-xs text-gray-500 mt-1">Enter the amount being paid in this transaction. This will be added to any existing payment for the **selected month**.</p>
                 </div>
 
-                <button type="submit" class="w-full py-2 px-4 rounded-lg bg-green-600 text-white font-semibold hover:bg-green-700 transition duration-300 shadow-md">
+                <button type="submit" id="btn-record-payment" class="w-full py-2 px-4 rounded-lg bg-green-600 text-white font-semibold hover:bg-green-700 transition duration-300 shadow-md">
                     Record Payment
                 </button>
             </form>
@@ -507,10 +531,9 @@
                     <table class="min-w-full divide-y divide-gray-700">
                         <thead class="bg-gray-800">
                             <tr>
-                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Month/Year</th>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Year-Month</th>
                                 <th class="px-4 py-2 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Amount Paid (Rs.)</th>
                                 <th class="px-4 py-2 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Paid On</th>
-                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Mode</th>
                                 <th class="px-4 py-2 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Recorded By</th>
                             </tr>
                         </thead>
@@ -552,7 +575,7 @@
                     <label for="edit-monthly-amount" class="block text-sm font-medium text-gray-400">Monthly Paid Amount (in Rs.)</label>
                     <input type="number" id="edit-monthly-amount" required class="form-input" min="0" placeholder="e.g., 1000">
                 </div>
-                <button type="submit" class="w-full py-2 px-4 rounded-lg btn-gold transition duration-300 shadow-md">
+                <button type="submit" id="btn-save-edit" class="w-full py-2 px-4 rounded-lg btn-gold transition duration-300 shadow-md">
                     Save Changes
                 </button>
             </form>
@@ -640,6 +663,31 @@
         function hideLoader() {
             document.getElementById('loader-bar').classList.add('hidden');
         }
+
+        /** * Toggles the loading state of a specific button (Shimmer Bar Effect).
+         * @param {string} btnId The ID of the button.
+         * @param {boolean} isLoading True to show loader, false to reset.
+         * @param {string} originalText The text to restore when not loading.
+         */
+        function toggleButtonLoading(btnId, isLoading, originalText = '') {
+            const btn = document.getElementById(btnId);
+            if (!btn) return;
+            
+            if (isLoading) {
+                // Store original text if not provided
+                if (!btn.dataset.originalText) {
+                    btn.dataset.originalText = btn.innerText;
+                }
+                btn.classList.add('btn-loading');
+                btn.innerText = 'Processing...';
+                btn.disabled = true;
+            } else {
+                btn.classList.remove('btn-loading');
+                btn.innerText = originalText || btn.dataset.originalText || 'Submit';
+                btn.disabled = false;
+            }
+        }
+
 
         /** Helper function to show notifications (replaces alert()). */
         function showToast(message, type = 'success') {
@@ -900,7 +948,7 @@
         /**
          * Displays a custom confirmation modal.
          * @param {string} message The message to display.
-         * @param {function} onConfirm Callback function to execute on confirmation.
+         * @param {function} onConfirm Async Callback function to execute on confirmation.
          * @param {string} okText Text for the confirm button.
          */
         function showConfirmationModal(message, onConfirm, okText = 'Confirm') {
@@ -918,9 +966,16 @@
             cancelButton.onclick = null;
             
             // Set new listeners
-            okButton.onclick = () => {
+            okButton.onclick = async () => {
+                // Show loader on the button itself
+                toggleButtonLoading('confirm-ok', true);
+                
+                // Wait for the async operation (e.g., delete)
+                await onConfirm();
+                
+                // Hide loader and close modal
+                toggleButtonLoading('confirm-ok', false, okText);
                 modal.style.display = 'none';
-                onConfirm();
             };
             cancelButton.onclick = () => {
                 modal.style.display = 'none';
@@ -931,12 +986,13 @@
         
         /**
          * Fetches current month payment status for all USERS (role='user'), updates the Dashboard due count,
-         * and prepares the list of unpaid users for the dashboard grid.
-         * MODIFIED: Filters to only include role='user'.
+         * due amount, and received amount, and prepares the list of unpaid users for the dashboard grid.
          */
         async function updateDashboardDueCount() {
             if (Object.keys(allUsers).length === 0) {
                 document.getElementById('current-month-due-count').textContent = '0';
+                document.getElementById('current-month-due-amount').textContent = 'Rs. 0';
+                document.getElementById('current-month-received-amount').textContent = 'Rs. 0';
                 currentMonthUnpaidUsers = [];
                 renderDashboardUnpaidGrid(); // Updated call
                 return;
@@ -947,6 +1003,8 @@
             const paymentKey = `${year}/${month}`;
             
             let tempDueCount = 0;
+            let tempTotalDueAmount = 0;
+            let tempTotalReceivedAmount = 0;
             currentMonthUnpaidUsers = []; 
 
             try {
@@ -962,10 +1020,14 @@
                         const paidAmount = snapshot.exists() ? snapshot.val().amount : 0;
                         const user = allUsers[phoneKey];
                         const monthlyFee = user.monthlyPaidAmount || 0;
+                        
+                        tempTotalReceivedAmount += paidAmount;
+
                         const dueAmount = monthlyFee - paidAmount;
                         
                         if (dueAmount > 0) { 
                             tempDueCount++; 
+                            tempTotalDueAmount += dueAmount;
                             // Store the user object and due amount for the dashboard grid
                             currentMonthUnpaidUsers.push({
                                 ...user,
@@ -980,12 +1042,16 @@
                 
                 currentMonthDueCount = tempDueCount;
                 document.getElementById('current-month-due-count').textContent = currentMonthDueCount;
+                document.getElementById('current-month-due-amount').textContent = `Rs. ${tempTotalDueAmount.toLocaleString()}`;
+                document.getElementById('current-month-received-amount').textContent = `Rs. ${tempTotalReceivedAmount.toLocaleString()}`;
                 
                 renderDashboardUnpaidGrid(); // Updated call
 
             } catch (error) {
                 console.error("Error updating dashboard due count:", error);
                 document.getElementById('current-month-due-count').textContent = 'Error';
+                document.getElementById('current-month-due-amount').textContent = 'Error';
+                document.getElementById('current-month-received-amount').textContent = 'Error';
             }
         }
         
@@ -1395,14 +1461,11 @@
 
                     payments.forEach(payment => {
                         const paidOnDate = payment.paidOn ? new Date(payment.paidOn).toLocaleString() : 'N/A';
-                        const paymentMode = payment.paymentMode || 'Cash'; // Default to Cash if not present
-
                         htmlContent += `
                             <tr>
                                 <td class="px-4 py-2 whitespace-nowrap text-sm font-medium text-gray-200">${payment.monthYear || 'N/A'}</td>
                                 <td class="px-4 py-2 whitespace-nowrap text-sm text-green-500">Rs. ${payment.amount?.toLocaleString() || '0'}</td>
                                 <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-400">${paidOnDate}</td>
-                                <td class="px-4 py-2 whitespace-nowrap text-sm text-yellow-400">${paymentMode}</td>
                                 <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-400">${payment.recordedBy || 'System'}</td>
                             </tr>
                         `;
@@ -1433,7 +1496,7 @@
         function deleteUserPrompt(phoneKey) {
             showConfirmationModal(
                 `Are you sure you want to permanently delete user with phone number ${phoneKey}? This cannot be undone.`,
-                () => deleteUser(phoneKey),
+                () => deleteUser(phoneKey), // This returns the promise from deleteUser
                 'Confirm Delete'
             );
         }
@@ -1479,6 +1542,7 @@
             }
             
             showLoader();
+            toggleButtonLoading('btn-register-user', true); // Show button loader
 
             try {
                 const userRef = ref(db, `${USERS_PATH}/${phone}`);
@@ -1508,6 +1572,7 @@
                 console.error("Registration Error:", error);
                 showToast(`An error occurred during registration: ${error.message}`, 'error');
             } finally {
+                toggleButtonLoading('btn-register-user', false, 'Register User'); // Hide button loader
                 hideLoader();
             }
         }
@@ -1531,6 +1596,7 @@
             }
 
             showLoader();
+            toggleButtonLoading('btn-save-edit', true); // Show button loader
 
             try {
                 const userRef = ref(db, `${USERS_PATH}/${phoneKey}`);
@@ -1551,6 +1617,7 @@
                 console.error("User Edit Error:", error);
                 showToast(`An error occurred while updating user: ${error.message}`, 'error');
             } finally {
+                toggleButtonLoading('btn-save-edit', false, 'Save Changes'); // Hide button loader
                 hideLoader();
             }
         }
@@ -1566,9 +1633,7 @@
             const monthYear = document.getElementById('payment-month').value; // YYYY-MM
             // The amount paid *in this transaction*
             const amountPaidNow = parseInt(document.getElementById('payment-amount').value, 10); 
-            // NEW: Get the Payment Mode
-            const paymentMode = document.getElementById('payment-mode').value;
-
+            
             if (!phoneKey || !monthYear || isNaN(amountPaidNow) || amountPaidNow <= 0) { // Check for valid new payment amount
                 showToast("Please enter a valid amount greater than 0.", 'error');
                 return;
@@ -1578,6 +1643,7 @@
             const paymentKey = `${year}/${month}`; // e.g., 2025/11
 
             showLoader();
+            toggleButtonLoading('btn-record-payment', true); // Show button loader
 
             try {
                 // Payments path: payments/{phoneKey}/{year}/{month}
@@ -1594,12 +1660,11 @@
                     amount: newTotalPaidAmount, // Store the new cumulative total
                     paidOn: new Date().toISOString(),
                     recordedBy: loggedInAdminKey || 'Admin', // Store the key of the admin who recorded it
-                    monthYear: monthYear,
-                    paymentMode: paymentMode // Store the selected Payment Mode
+                    monthYear: monthYear
                 };
 
                 await set(paymentRef, paymentData);
-                showToast(`Payment of Rs. ${amountPaidNow} (${paymentMode}) recorded. Total paid for ${monthYear} is now Rs. ${newTotalPaidAmount}.`, 'success');
+                showToast(`Payment of Rs. ${amountPaidNow} recorded. Total paid for ${monthYear} is now Rs. ${newTotalPaidAmount}.`, 'success');
 
                 // If the recorded payment is for the currently selected month in the filter, 
                 // update the global payment status and re-render.
@@ -1621,6 +1686,7 @@
                 console.error("Payment Update Error:", error);
                 showToast(`An error occurred while recording payment: ${error.message}`, 'error');
             } finally {
+                toggleButtonLoading('btn-record-payment', false, 'Record Payment'); // Hide button loader
                 hideLoader();
             }
         }
